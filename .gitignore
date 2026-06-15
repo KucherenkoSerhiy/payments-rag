@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+
+# Corpus: raw sources are not committed (large, licensed). Processed output is derived.
+corpus/raw/*
+!corpus/raw/.gitkeep
+corpus/processed/*
+!corpus/processed/.gitkeep
+
+# Personal logs (per checklists.md these may be kept local)
+retro-inbox.md
+session-log.md

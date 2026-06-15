@@ -1,0 +1,53 @@
+"""Central config. Reads .env once; every other module imports from here.
+
+Python note (for the .NET reader): there is no DI container. A module is a
+singleton — importing `config` runs this file once and caches the result, so
+these values behave like a static settings class.
+
+Keys are validated lazily (via the require_* functions), not at import, so a
+DB-only script doesn't fail because an unrelated API key is missing.
+"""
+
+from __future__ import annotations
+
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()  # no-op if .env is absent; real env vars still win
+
+
+def _require(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(
+            f"{name} is not set. Copy .env.example to .env and fill it in, "
+            f"or export {name} in your shell."
+        )
+    return value
+
+
+# --- LLM (production responder) ---
+# Haiku 4.5 — cheapest current Claude ($1/$5 per 1M). Note: the eval judge must
+# stay a different model (GPT-4) to preserve cross-model judging (scoping).
+LLM_MODEL: str = os.environ.get("LLM_MODEL", "claude-haiku-4-5")
+
+
+def require_anthropic_key() -> str:
+    return _require("ANTHROPIC_API_KEY")
+
+
+# --- Embeddings ---
+# Pinned. Changing the model invalidates every stored vector (scoping risk #8).
+EMBED_MODEL: str = os.environ.get("EMBED_MODEL", "text-embedding-3-small")
+EMBED_DIM: int = 1536  # dimension of text-embedding-3-small; must match init.sql
+
+
+def require_openai_key() -> str:
+    return _require("OPENAI_API_KEY")
+
+
+# --- Vector store ---
+DATABASE_URL: str = os.environ.get(
+    "DATABASE_URL", "postgresql://payments:payments@localhost:5433/payments_rag"
+)

@@ -1,0 +1,23 @@
+# Postgres + pgvector for the vector store.
+# Host port 5433 to avoid clashing with a local Postgres on 5432.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: payments_rag_db
+    environment:
+      POSTGRES_USER: payments
+      POSTGRES_PASSWORD: payments
+      POSTGRES_DB: payments_rag
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payments -d payments_rag"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

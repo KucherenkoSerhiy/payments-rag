@@ -1,0 +1,34 @@
+[project]
+name = "payments-rag"
+version = "0.1.0"
+description = "RAG agent for payments engineers: SEPA SCT / SCT Inst / pacs.* (ISO 20022) questions, answers with spec citations."
+readme = "README.md"
+requires-python = ">=3.12"
+
+# Dependencies are locked by scoping.md. Do not add others without asking.
+dependencies = [
+    "anthropic>=0.40",      # production LLM, raw API
+    "openai>=1.55",         # embeddings (text-embedding-3-small) + cross-model judge
+    "psycopg[binary]>=3.2", # Postgres driver
+    "pgvector>=0.3",        # psycopg adapter for the vector type
+    "pypdf>=5.1",           # read SEPA spec PDFs
+    "python-dotenv>=1.0",   # load .env
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+# Application (not a library): no build backend, modules run from the repo root.
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
