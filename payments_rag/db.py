@@ -43,6 +43,12 @@ def insert_chunk(
     page: int | None = None,
 ) -> int:
     """Insert one chunk + embedding, return its id."""
+    if len(embedding) != config.EMBED_DIM:
+        raise ValueError(
+            f"embedding has {len(embedding)} dims, expected {config.EMBED_DIM} "
+            f"({config.EMBED_MODEL}); chunks.embedding is VECTOR({config.EMBED_DIM}). "
+            "Changing the embedding model needs a schema change + full re-embed."
+        )
     row = conn.execute(
         """
         INSERT INTO chunks (source, page, chunk_index, text, embedding)
