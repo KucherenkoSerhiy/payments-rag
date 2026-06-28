@@ -6,6 +6,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# IDE
+.idea/
+.vscode/
+
 # Environment / secrets
 .env
 
