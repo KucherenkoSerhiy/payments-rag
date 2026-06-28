@@ -22,6 +22,7 @@ def _get_client() -> OpenAI:
     global _client
     if _client is None:
         _client = OpenAI(api_key=config.require_openai_key())
+    assert _client is not None
     return _client
 
 
