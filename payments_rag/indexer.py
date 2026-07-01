@@ -21,6 +21,7 @@ from pypdf import PdfReader
 from payments_rag import db
 from payments_rag.chunker import chunk_text
 from payments_rag.embedding import embed
+from payments_rag.textprep import clean_page, find_repeated_lines
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +44,18 @@ def _extract_chunks(
 ) -> tuple[int, int, list[tuple[int, str]]]:
     """Return (total_pages, pages_with_text, [(page_number, chunk_text), ...])."""
     reader = PdfReader(str(path))
+    raw_pages = [page.extract_text() or "" for page in reader.pages]
+
+    # Detect this document's header/footer boilerplate across all its pages,
+    # then strip it before chunking so it doesn't pollute the embeddings.
+    repeated = find_repeated_lines(raw_pages)
+
     records: list[tuple[int, str]] = []
     pages_with_text = 0
-    for page_no, page in enumerate(reader.pages, start=1):
-        text = (page.extract_text() or "").strip()
+    for page_no, raw in enumerate(raw_pages, start=1):
+        text = clean_page(raw, repeated)
         if not text:
-            continue  # blank / image-only page
+            continue  # blank / image-only / boilerplate-only page
         pages_with_text += 1
         for chunk in chunk_text(text, size=chunk_size, overlap=overlap):
             records.append((page_no, chunk))
