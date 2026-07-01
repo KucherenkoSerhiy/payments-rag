@@ -94,3 +94,17 @@ def count(conn: psycopg.Connection) -> int:
     row = conn.execute("SELECT count(*) FROM chunks").fetchone()
     assert row is not None
     return int(row[0])
+
+
+def clear_all(conn: psycopg.Connection) -> int:
+    """Delete every chunk (e.g. to drop stale spike data before a clean index)."""
+    cur = conn.execute("DELETE FROM chunks")
+    return cur.rowcount
+
+
+def source_counts(conn: psycopg.Connection) -> list[tuple[str, int]]:
+    """Return (source, chunk_count) per source, most chunks first."""
+    rows = conn.execute(
+        "SELECT source, count(*) FROM chunks GROUP BY source ORDER BY count(*) DESC"
+    ).fetchall()
+    return [(r[0], int(r[1])) for r in rows]

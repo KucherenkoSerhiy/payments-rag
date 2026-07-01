@@ -11,10 +11,24 @@ This folder is the actual code repo. The planning docs (`scoping.md`,
 `pet-project-roadmap.md`, `checklists.md`, `CLAUDE.md`) live one level up and are
 kept separate from the code on purpose.
 
-## Status: Week 1 spike
+## Status: Week 2 — retrieval working
 
-Proving every external integration before building the real pipeline. The four
-spike scripts under `spike/` each prove one thing:
+The corpus of SEPA rulebooks is indexed into pgvector and a question returns the
+most relevant spec passages (source + page). No answer generation yet — that is
+Week 3. Use the CLI:
+
+```bash
+uv run python -m payments_rag.cli index --reset        # ingest corpus/raw/*.pdf
+uv run python -m payments_rag.cli query "how fast does SCT Inst settle?"
+uv run python -m payments_rag.cli stats                # chunks per source
+```
+
+`query` is the showable checkpoint: type a question, see the retrieved passages.
+
+### Week 1 spike (done)
+
+Four throwaway scripts under `spike/` proved every external integration before
+the real pipeline was built:
 
 | Step | Proves | Command |
 |---|---|---|
