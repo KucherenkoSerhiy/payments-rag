@@ -16,7 +16,7 @@ import logging
 import textwrap
 
 from payments_rag import db
-from payments_rag.indexer import index_corpus
+from payments_rag.indexer import CorpusIndexer
 from payments_rag.retriever import retrieve
 
 log = logging.getLogger("payments_rag")
@@ -36,9 +36,10 @@ def cmd_index(args: argparse.Namespace) -> None:
             cleared = db.clear_all(conn)
             conn.commit()
             log.info("reset: cleared %d existing chunks", cleared)
-        stats = index_corpus(
-            conn, args.corpus, chunk_size=args.chunk_size, overlap=args.overlap
+        indexer = CorpusIndexer(
+            conn, chunk_size=args.chunk_size, overlap=args.overlap
         )
+        stats = indexer.index_corpus(args.corpus)
         total = sum(s.chunks for s in stats)
         log.info(
             "done: %d document(s), %d chunks (%d rows in table)",

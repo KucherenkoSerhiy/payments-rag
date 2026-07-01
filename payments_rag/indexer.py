@@ -1,12 +1,10 @@
 """Corpus indexer: PDF files -> chunks -> embeddings -> pgvector.
 
-Productionizes spike/step4 into a reusable, idempotent pipeline:
-- chunks are made **per page** so the stored page number is exact (needed for
-  citations later); the cross-page context loss this causes is the known
-  chunking-quality tradeoff, deferred until retrieval is measurable.
-- embeddings are sent in batches (one API call per ~100 chunks, not per chunk).
-- re-indexing a document replaces its rows (delete-by-source), so runs are safe
-  to repeat.
+`CorpusIndexer` owns the indexing config (chunk size, overlap, embed batch) and
+the DB connection, so the pipeline stages don't thread those through every call.
+Pipeline per document: read pages -> strip boilerplate -> chunk -> batch-embed
+-> store. Chunks are made per page (exact page numbers for citations) and a
+re-index replaces a document's rows (delete-by-source), so runs are idempotent.
 """
 
 from __future__ import annotations
@@ -25,8 +23,6 @@ from payments_rag.textprep import clean_page, find_repeated_lines
 
 logger = logging.getLogger(__name__)
 
-EMBED_BATCH = 100  # chunks per embedding API call
-
 # Synthetic spike fixture — not part of the real corpus, skip it when indexing.
 _FIXTURE_NAMES = {"sample_sepa.pdf"}
 
@@ -39,86 +35,86 @@ class IndexStats:
     chunks: int
 
 
-def _extract_chunks(
-    path: Path, *, chunk_size: int, overlap: int
-) -> tuple[int, int, list[tuple[int, str]]]:
-    """Return (total_pages, pages_with_text, [(page_number, chunk_text), ...])."""
-    reader = PdfReader(str(path))
-    raw_pages = [page.extract_text() or "" for page in reader.pages]
+class CorpusIndexer:
+    """Indexes corpus PDFs into pgvector."""
 
-    # Detect this document's header/footer boilerplate across all its pages,
-    # then strip it before chunking so it doesn't pollute the embeddings.
-    repeated = find_repeated_lines(raw_pages)
+    def __init__(
+        self,
+        conn: psycopg.Connection,
+        *,
+        chunk_size: int = 300,
+        overlap: int = 50,
+        embed_batch: int = 100,
+    ) -> None:
+        self.conn = conn
+        self.chunk_size = chunk_size
+        self.overlap = overlap
+        self.embed_batch = embed_batch
 
-    records: list[tuple[int, str]] = []
-    pages_with_text = 0
-    for page_no, raw in enumerate(raw_pages, start=1):
-        text = clean_page(raw, repeated)
-        if not text:
-            continue  # blank / image-only / boilerplate-only page
-        pages_with_text += 1
-        for chunk in chunk_text(text, size=chunk_size, overlap=overlap):
-            records.append((page_no, chunk))
-    return len(reader.pages), pages_with_text, records
+    # ----- public API -----
 
-
-def index_pdf(
-    conn: psycopg.Connection,
-    path: str | Path,
-    *,
-    chunk_size: int = 300,
-    overlap: int = 50,
-) -> IndexStats:
-    """Index a single PDF into pgvector. Replaces any existing rows for it."""
-    path = Path(path)
-    source = path.name
-    total_pages, pages_with_text, records = _extract_chunks(
-        path, chunk_size=chunk_size, overlap=overlap
-    )
-
-    db.delete_source(conn, source)  # idempotent reindex
-
-    texts = [text for _, text in records]
-    vectors: list[list[float]] = []
-    for start in range(0, len(texts), EMBED_BATCH):
-        batch = texts[start : start + EMBED_BATCH]
-        vectors.extend(embed(batch))
-        logger.info("  %s: embedded %d/%d chunks", source, len(vectors), len(texts))
-
-    for chunk_index, ((page_no, text), vec) in enumerate(zip(records, vectors)):
-        db.insert_chunk(
-            conn,
-            source=source,
-            page=page_no,
-            chunk_index=chunk_index,
-            text=text,
-            embedding=vec,
+    def index_corpus(self, corpus_dir: str | Path = "corpus/raw") -> list[IndexStats]:
+        """Index every real PDF in a directory (skips the synthetic spike fixture)."""
+        pdfs = sorted(
+            p for p in Path(corpus_dir).glob("*.pdf") if p.name not in _FIXTURE_NAMES
         )
-    conn.commit()
+        if not pdfs:
+            raise SystemExit(f"no corpus PDFs found in {corpus_dir}")
+        return [self.index_pdf(p) for p in pdfs]
 
-    stats = IndexStats(source, total_pages, pages_with_text, len(records))
-    logger.info(
-        "indexed %s: %d pages (%d with text) -> %d chunks",
-        source,
-        total_pages,
-        pages_with_text,
-        len(records),
-    )
-    return stats
+    def index_pdf(self, path: str | Path) -> IndexStats:
+        """Index a single PDF. Replaces any existing rows for it."""
+        path = Path(path)
+        pages = self._read_pages(path)
+        boilerplate = find_repeated_lines(pages)
 
+        records: list[tuple[int, str]] = []
+        pages_with_text = 0
+        for page_no, raw in enumerate(pages, start=1):
+            text = clean_page(raw, boilerplate)
+            if not text:
+                continue  # blank / image-only / boilerplate-only page
+            pages_with_text += 1
+            for chunk in chunk_text(text, size=self.chunk_size, overlap=self.overlap):
+                records.append((page_no, chunk))
 
-def index_corpus(
-    conn: psycopg.Connection,
-    corpus_dir: str | Path = "corpus/raw",
-    *,
-    chunk_size: int = 300,
-    overlap: int = 50,
-) -> list[IndexStats]:
-    """Index every real PDF in a directory (skips the synthetic spike fixture)."""
-    corpus_dir = Path(corpus_dir)
-    pdfs = sorted(p for p in corpus_dir.glob("*.pdf") if p.name not in _FIXTURE_NAMES)
-    if not pdfs:
-        raise SystemExit(f"no corpus PDFs found in {corpus_dir}")
-    return [
-        index_pdf(conn, p, chunk_size=chunk_size, overlap=overlap) for p in pdfs
-    ]
+        db.delete_source(self.conn, path.name)  # idempotent reindex
+        self._embed_and_store(path.name, records)
+        self.conn.commit()
+
+        stats = IndexStats(path.name, len(pages), pages_with_text, len(records))
+        logger.info(
+            "indexed %s: %d pages (%d with text) -> %d chunks",
+            stats.source,
+            stats.pages,
+            stats.pages_with_text,
+            stats.chunks,
+        )
+        return stats
+
+    # ----- internals -----
+
+    @staticmethod
+    def _read_pages(path: Path) -> list[str]:
+        return [page.extract_text() or "" for page in PdfReader(str(path)).pages]
+
+    def _embed_and_store(self, source: str, records: list[tuple[int, str]]) -> None:
+        """Embed chunks in batches and insert each with its page + order."""
+        for start in range(0, len(records), self.embed_batch):
+            batch = records[start : start + self.embed_batch]
+            vectors = embed([text for _, text in batch])
+            for offset, ((page_no, text), vec) in enumerate(zip(batch, vectors)):
+                db.insert_chunk(
+                    self.conn,
+                    source=source,
+                    page=page_no,
+                    chunk_index=start + offset,
+                    text=text,
+                    embedding=vec,
+                )
+            logger.info(
+                "  %s: embedded %d/%d chunks",
+                source,
+                min(start + self.embed_batch, len(records)),
+                len(records),
+            )

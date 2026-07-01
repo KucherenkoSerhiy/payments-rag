@@ -9,10 +9,17 @@ Week-3 agent layer); this is the query CLI with a box instead of a terminal.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import streamlit as st
 
-from payments_rag import db
-from payments_rag.retriever import retrieve
+# Streamlit runs this file from ui/, so the app root isn't on sys.path by
+# default — add it so `payments_rag` (one level up) is importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from payments_rag import db  # noqa: E402  (import after sys.path bootstrap)
+from payments_rag.retriever import retrieve  # noqa: E402
 
 st.set_page_config(page_title="Payments RAG — retrieval", page_icon="🔎")
 st.title("Payments RAG — retrieval")
