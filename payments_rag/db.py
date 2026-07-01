@@ -6,7 +6,7 @@ Thin wrapper over psycopg. No ORM (raw SQL is legible and the schema is tiny).
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import psycopg
 from pgvector.psycopg import register_vector
