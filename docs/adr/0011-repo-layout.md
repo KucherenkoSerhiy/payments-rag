@@ -17,8 +17,8 @@ docs live one level up and are **not** part of the code repo.
   repo's "this is the software" boundary fuzzy.
 
 ## Consequences
-- Clean separation: `app/` is the portfolio repo you'd push to GitHub; the docs
-  are private planning context.
+- Clean separation: `app/` is the code repo you'd push to GitHub; the docs are
+  private planning context.
 - All tooling (uv, pytest, docker-compose paths) is rooted at `app/`, so commands
   run from there.
 - ADRs live *inside* `app/docs/adr/` — they're about the software and ship with it.

@@ -2,6 +2,8 @@
 
 The single source of truth for where we are and what's left. Two goals, two
 tracks. Updated as things ship. If it's not here, it's lost — so it's all here.
+The gaps in `architecture.md`'s final section are mirrored into the backlog below
+(keep the two in sync).
 
 ## Vision
 Build the tool myself rather than use one; make it public so others can integrate
@@ -59,6 +61,8 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 - **Next:** M2 retrieval eval (needs your question→page labels).
 - **Reliability:** retry/timeout/circuit-breaker; smoke test; CI.
 - **Quality (only when measurable):** reranking; hybrid search; semantic chunking.
+- **Retrieval scoping:** `nearest` searches the whole table — add a per-source
+      filter (e.g. search only one rulebook). [architecture.md gap]
 - **Public:** LICENSE; outsider README; PR template; public GitHub remote.
 - **Cloud:** app Dockerfile; managed pgvector; secrets; rate-limit.
 - **Ingestion research:** layout-aware extraction; image/OCR PDFs.

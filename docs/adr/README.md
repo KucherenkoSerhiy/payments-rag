@@ -5,8 +5,9 @@ the consequences we accepted. Format is [Michael Nygard's](https://cognitect.com
 They are immutable once Accepted — a reversal is a *new* ADR that supersedes the
 old one, so the history of *why* survives.
 
-Why bother on a solo project: the decisions, not the code, are what an interview
-probes ("why pgvector and not Pinecone?"). These are the receipts.
+Why bother on a solo project: decisions fade from memory and get silently
+reversed. An ADR preserves the *why*, so future-you (or a contributor) doesn't
+relitigate a settled call.
 
 | # | Decision | Status |
 |---|---|---|

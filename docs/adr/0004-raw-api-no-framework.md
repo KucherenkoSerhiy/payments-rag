@@ -18,7 +18,5 @@ plain Python (`retriever.py`, and later an `orchestrator`).
 ## Consequences
 - More lines written by hand, but every step is legible and debuggable — you can
   read exactly what goes into the prompt.
-- Stronger interview signal: you understand each layer of the RAG stack rather
-  than "I called a chain."
 - If orchestration grows genuinely complex (multi-step agents), revisit — this
   ADR would be superseded, not silently violated.
