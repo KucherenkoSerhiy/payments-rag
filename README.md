@@ -6,6 +6,11 @@ short answer with clickable citations to the spec passages that support it.
 
 > The LLM can be wrong. Always navigate to the cited source before trusting an
 > answer. See `../scoping.md` for the full contract, goals, and non-goals.
+>
+> **Current retrieval quality: recall@5 = 0.60** on a 10-question verified golden
+> set (`evals/`) — roughly 3 in 5 questions get a relevant page into the top 5.
+> Treat answers as leads to verify, not authority. Reproduce with
+> `python -m evals.retrieval_eval`.
 
 This folder is the actual code repo. The planning docs (`scoping.md`,
 `pet-project-roadmap.md`, `checklists.md`, `CLAUDE.md`) live one level up and are
