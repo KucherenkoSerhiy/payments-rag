@@ -30,7 +30,8 @@ Rough order; each milestone is shippable on its own.
 - [ ] **M5 Reliability** — API retry/timeout/circuit-breaker; smoke test; CI
       (GitHub Actions running unit + a small eval subset)
 - [ ] **M6 Retrieval quality** — reranking / hybrid (vector+BM25) / semantic
-      chunking — each adopted only if the eval (M2) shows it helps
+      chunking — each adopted only if the eval (M2) shows it helps. See ADR-0014
+      (Proposed) for the direction + trade-offs.
 - [ ] **M7 Open-source polish** — LICENSE (MIT); README for outsiders; PR
       template; push to public GitHub
 - [ ] **M8 Cloud deploy** — containerize the app; managed Postgres+pgvector;
