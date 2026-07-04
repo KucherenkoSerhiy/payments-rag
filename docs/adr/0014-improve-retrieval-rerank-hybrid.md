@@ -40,7 +40,17 @@ whichever moves the number (possibly both). Adopt nothing that doesn't.
 - **Likely a new dependency:** a reranker (local cross-encoder, or a hosted rerank
   API). Hybrid search via Postgres FTS adds *no* new dependency — a point in its favour.
 
+## Measurement (2026-07-04 diagnostic)
+Recall curve on the 10-question set: **@5 = 0.60, @10 = 0.70, @20 = 0.70**. It
+plateaus at 20 → for 3/10 questions the right page isn't in the top-20 at all.
+Reranking only reorders retrieved candidates, so its ceiling here is recall@20 =
+0.70 (max +0.10 over the current 0.60). **The bottleneck is recall, not ranking.**
+Implication: try **hybrid search (vector + BM25)** first — it can pull the
+missing exact-term pages into the candidate set; reranking is a secondary,
+lower-headroom lever. (Small sample — directional; grow the golden set for
+stable numbers.)
+
 ## Decision gate
 Finalize this ADR (Accepted, naming the concrete choice) only after measuring the
 candidates against the golden set. Until then, this records the direction, not a
-committed technique.
+committed technique. Current lean from the diagnostic: **hybrid first**.

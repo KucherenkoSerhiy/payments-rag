@@ -81,6 +81,10 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04 (M6 diagnostic)** — Recall curve: @5=0.60, @10=0.70, @20=0.70
+  (plateau). 3/10 questions miss even at top-20 → **recall-bound, not
+  rank-bound.** Reranking headroom only +0.10 here; **hybrid search (BM25) is the
+  higher-leverage first lever.** See ADR-0014 Measurement.
 - **2026-07-04 (M3 done)** — Answer layer works end-to-end (`cli ask` →
   grounded answer + citations to source/page). `build_prompt`/`answer`
   hand-written (2nd hands-on session). Note: answer quality is capped by
