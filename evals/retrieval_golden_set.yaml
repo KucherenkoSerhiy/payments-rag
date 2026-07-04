@@ -1,0 +1,37 @@
+# Retrieval golden set — the ground truth for the recall@k eval.
+#
+# Each entry: a real question + the page(s) whose text actually ANSWERS it.
+# YOU label the pages with domain knowledge — the eval is only as good as this
+# file (a biased or tiny set gives a meaningless number; see ADR-0012).
+#
+# How to label one question:
+#   1. Find candidates:  uv run python -m payments_rag.cli query "your question"
+#   2. Open the cited PDF page(s) in corpus/raw/ and CONFIRM the text truly
+#      answers it. Retrieval candidates are hints, NOT ground truth — verify.
+#   3. Put the confirmed source + page number(s) in answer_pages.
+#
+# Aim for ~10-15 entries, DIVERSE in theme (timing, message types, returns,
+# charges, definitions) — not all one topic.
+#
+# Schema per entry:
+#   id:            short kebab-case identifier
+#   question:      the natural-language question
+#   answer_pages:  one or more {source, pages:[...]} blocks (the ground truth)
+
+- id: sct-inst-settlement-time
+  question: "What is the maximum execution time for an SCT Inst payment?"
+  answer_pages:
+    - source: sct_inst_rulebook_2025.pdf
+      pages: []        # TODO: verify in the PDF and fill (timing / execution section)
+
+- id: pacs-004-purpose
+  question: "What is a pacs.004 message used for?"
+  answer_pages:
+    - source: sct_inst_rulebook_2025.pdf
+      pages: []        # TODO
+
+- id: sct-vs-sct-inst-funds
+  question: "How does SCT Inst differ from a standard SCT in when funds reach the beneficiary?"
+  answer_pages:
+    - source: sct_rulebook_2025.pdf
+      pages: []        # TODO

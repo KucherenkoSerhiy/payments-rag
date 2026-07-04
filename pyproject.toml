@@ -14,6 +14,7 @@ dependencies = [
     "pypdf>=5.1",           # read SEPA spec PDFs
     "python-dotenv>=1.0",   # load .env
     "streamlit>=1.40",      # minimal query UI (scoping-approved UI option)
+    "pyyaml>=6.0",          # golden-set eval files (ADR-0012)
 ]
 
 [dependency-groups]

@@ -19,8 +19,9 @@ Rough order; each milestone is shippable on its own.
 - [x] **M0 Foundations** — repo, Docker pgvector, all integrations proven (spike)
 - [x] **M1 Retrieval working** — corpus indexed (484 chunks), chunker + boilerplate
       strip, retriever, query CLI + Streamlit UI
-- [ ] **M2 Measured retrieval** ← **NEXT** — golden set (question → relevant pages)
-      + recall@k eval. Turns "seems good" into a number.
+- [~] **M2 Measured retrieval** — recall@k harness + tests **done**
+      (`evals/`); `hit_at_k`/`recall_at_k` hand-written. Remaining: label
+      `answer_pages` in the golden set (domain knowledge) → run → get the number.
 - [ ] **M3 Answer layer** — orchestrator: retrieved chunks → prompt → LLM →
       `{answer, citations}` (structured JSON, ADR-0006)
 - [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
@@ -74,6 +75,9 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04** — M2 harness built: `evals/retrieval_eval.py` + golden-set
+  YAML + 8 tests. `hit_at_k`/`recall_at_k` written by hand (first hands-on
+  Python). Awaiting golden-set page labels to produce the recall@k number.
 - **2026-07-01** — Retrieval working (M1). Chunking iterated → measured neutral
   on retrieval (ADR-0009). ADRs (13) + architecture diagrams written. Streamlit
   import bug fixed. Indexer refactored into `CorpusIndexer`. Mindset reframed to
