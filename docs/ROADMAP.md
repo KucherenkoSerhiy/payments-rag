@@ -19,9 +19,10 @@ Rough order; each milestone is shippable on its own.
 - [x] **M0 Foundations** — repo, Docker pgvector, all integrations proven (spike)
 - [x] **M1 Retrieval working** — corpus indexed (484 chunks), chunker + boilerplate
       strip, retriever, query CLI + Streamlit UI
-- [~] **M2 Measured retrieval** — recall@k harness + tests **done**
-      (`evals/`); `hit_at_k`/`recall_at_k` hand-written. Remaining: label
-      `answer_pages` in the golden set (domain knowledge) → run → get the number.
+- [~] **M2 Measured retrieval** — harness + tests done; full loop proven
+      end-to-end (recall@5 = 1.00 over **2** verified questions — proves the
+      pipeline, but the sample is far too small to be a quality verdict).
+      Remaining: expand the golden set to ~10-15 diverse verified questions.
 - [ ] **M3 Answer layer** — orchestrator: retrieved chunks → prompt → LLM →
       `{answer, citations}` (structured JSON, ADR-0006)
 - [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
@@ -67,6 +68,9 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 - **Public:** LICENSE; outsider README; PR template; public GitHub remote.
 - **Cloud:** app Dockerfile; managed pgvector; secrets; rate-limit.
 - **Ingestion research:** layout-aware extraction; image/OCR PDFs.
+- **Corpus gap:** pacs.* / ISO 20022 message names are absent from the EPC
+      *rulebooks* (0 occurrences) — index the EPC Implementation Guidelines to
+      cover pacs.* per the stated scope. (Found via the golden set, 2026-07-04.)
 - **Cleanups:** remove `clean_page` U+FFFD no-op (+ its test — see ADR-0009);
       keep README status current.
 - **Review remaining (optional):** `spike/` (throwaway), `infra/`, the Postgres
@@ -75,6 +79,10 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04 (later)** — Ran M2 end-to-end: recall@5 = 1.00 over 2 verified
+  questions (proves the loop; not a quality verdict). Golden-set work caught a
+  **corpus gap** — pacs.* absent from the rulebooks → backlog — and a bad
+  question type (cross-doc comparison), both fixed in the seed set.
 - **2026-07-04** — M2 harness built: `evals/retrieval_eval.py` + golden-set
   YAML + 8 tests. `hit_at_k`/`recall_at_k` written by hand (first hands-on
   Python). Awaiting golden-set page labels to produce the recall@k number.

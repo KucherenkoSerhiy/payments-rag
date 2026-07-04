@@ -10,28 +10,28 @@
 #      answers it. Retrieval candidates are hints, NOT ground truth — verify.
 #   3. Put the confirmed source + page number(s) in answer_pages.
 #
-# Aim for ~10-15 entries, DIVERSE in theme (timing, message types, returns,
-# charges, definitions) — not all one topic.
-#
-# Schema per entry:
-#   id:            short kebab-case identifier
-#   question:      the natural-language question
-#   answer_pages:  one or more {source, pages:[...]} blocks (the ground truth)
+# Aim for ~10-15 entries, DIVERSE in theme (timing, availability, message
+# datasets, returns, charges, definitions) — not all one topic.
 
-- id: sct-inst-settlement-time
-  question: "What is the maximum execution time for an SCT Inst payment?"
+- id: sct-inst-max-execution-time
+  question: "What is the target maximum execution time for an SCT Inst payment?"
   answer_pages:
     - source: sct_inst_rulebook_2025.pdf
-      pages: []        # TODO: verify in the PDF and fill (timing / execution section)
+      pages: [26]   # verified: "Target maximum execution time: Latest at 5 seconds after the Time Stamp"
 
-- id: pacs-004-purpose
-  question: "What is a pacs.004 message used for?"
+- id: sct-inst-availability
+  question: "Is the SCT Inst scheme available on weekends and public holidays?"
   answer_pages:
     - source: sct_inst_rulebook_2025.pdf
-      pages: []        # TODO
+      pages: [17]   # verified: "available 24 hours a day and on all Calendar Days of the year"
 
-- id: sct-vs-sct-inst-funds
-  question: "How does SCT Inst differ from a standard SCT in when funds reach the beneficiary?"
+- id: sct-max-execution-time
+  question: "What is the maximum execution time for a standard (non-instant) SCT?"
   answer_pages:
     - source: sct_rulebook_2025.pdf
-      pages: []        # TODO
+      pages: []     # TODO: candidate pages 18 / 27 (term appears there) — verify which states it
+
+# NOTE — pacs.004 / pacs.008 questions are intentionally omitted: those ISO 20022
+# message names do NOT appear in the EPC *rulebooks* (0 occurrences). The rulebooks
+# use dataset (DS-xx) names; the pacs.* mapping lives in the Implementation
+# Guidelines, which are not yet indexed. See ROADMAP "corpus gap".
