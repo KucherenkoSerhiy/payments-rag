@@ -17,6 +17,7 @@ import textwrap
 
 from payments_rag import db
 from payments_rag.indexer import CorpusIndexer
+from payments_rag.orchestrator import answer as answer_question
 from payments_rag.retriever import retrieve
 
 log = logging.getLogger("payments_rag")
@@ -63,6 +64,16 @@ def cmd_query(args: argparse.Namespace) -> None:
         print()
 
 
+def cmd_ask(args: argparse.Namespace) -> None:
+    with db.connect() as conn:
+        result = answer_question(conn, args.question, k=args.k)
+    print(f"\nQ: {args.question}\n")
+    print(result.answer)
+    print("\nSources:")
+    for c in result.citations:
+        print(f"  - {c.source} p{c.page}  (chunk {c.chunk_id})")
+
+
 def cmd_stats(args: argparse.Namespace) -> None:
     with db.connect() as conn:
         total = db.count(conn)
@@ -94,6 +105,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_query.add_argument("question")
     p_query.add_argument("-k", type=int, default=5, help="how many chunks to return")
     p_query.set_defaults(func=cmd_query)
+
+    p_ask = sub.add_parser("ask", help="answer a question with citations (M3)")
+    p_ask.add_argument("question")
+    p_ask.add_argument("-k", type=int, default=5, help="chunks to retrieve for context")
+    p_ask.set_defaults(func=cmd_ask)
 
     p_stats = sub.add_parser("stats", help="show chunk counts per source")
     p_stats.set_defaults(func=cmd_stats)

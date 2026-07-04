@@ -22,8 +22,9 @@ Rough order; each milestone is shippable on its own.
 - [x] **M2 Measured retrieval** — 10-question verified golden set (both
       rulebooks, diverse themes). **recall@5 = 0.60** (6/10) — the baseline every
       retrieval change is now measured against. Improving it = M6.
-- [ ] **M3 Answer layer** — orchestrator: retrieved chunks → prompt → LLM →
-      `{answer, citations}` (structured JSON, ADR-0006)
+- [x] **M3 Answer layer** — `orchestrator.py`: retrieve → grounded prompt → LLM
+      → `{answer, citations}` (structured outputs, ADR-0006) → citations mapped to
+      source+page. `cli ask` works end-to-end. `build_prompt`/`answer` hand-written.
 - [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
       (ADR-0012); accuracy number documented in README
 - [ ] **M5 Reliability** — API retry/timeout/circuit-breaker; smoke test; CI
@@ -37,7 +38,8 @@ Rough order; each milestone is shippable on its own.
 - [ ] **M9 Robust ingestion** — layout-aware extraction (PyMuPDF/Docling);
       image/scanned PDFs via OCR or a vision model
 
-**Where we are:** M2 done (recall@5 = 0.60 baseline). Next: M3.
+**Where we are:** M3 done — grounded, cited answers work end-to-end. Next: M4
+(answer eval) or M5 (reliability).
 
 ---
 
@@ -78,6 +80,11 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04 (M3 done)** — Answer layer works end-to-end (`cli ask` →
+  grounded answer + citations to source/page). `build_prompt`/`answer`
+  hand-written (2nd hands-on session). Note: answer quality is capped by
+  retrieval — the demo answer missed the crisp p26 "5 seconds" figure because
+  retrieval didn't surface it (recall@5 = 0.60). Reinforces M6.
 - **2026-07-04 (M2 done)** — 10-question verified golden set (domain research;
   pages confirmed from source, not the retriever). **recall@5 = 0.60** (6/10).
   Misses: currency, charging-principle, remittance-length, value-limits — the
