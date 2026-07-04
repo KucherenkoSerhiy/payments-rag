@@ -95,17 +95,6 @@ def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
     return f"{instruction}\n\nQuestion: {question}\n\nSources:\n{sources}"
 
 def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResult:
-    """Answer a question with citations. Orchestrate the whole flow:
-
-      1. chunks = retrieve(conn, question, k=k)
-      2. prompt = build_prompt(question, chunks)
-      3. data   = _llm_json(prompt)          # {"answer": str, "citations": [int]}
-      4. Map each cited id back to source+page: build a {chunk.id: chunk} lookup
-         from `chunks`, then for each id in data["citations"] that IS in the
-         lookup, make a Citation(id, source, page). Skip ids not in the lookup
-         (the model can occasionally cite an id that wasn't retrieved).
-      5. Return AnswerResult(answer=data["answer"], citations=[...]).
-    """
     chunks = retrieve(conn, question, k=k)
     prompt = build_prompt(question, chunks)
     data = _llm_json(prompt)
