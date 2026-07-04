@@ -19,10 +19,9 @@ Rough order; each milestone is shippable on its own.
 - [x] **M0 Foundations** — repo, Docker pgvector, all integrations proven (spike)
 - [x] **M1 Retrieval working** — corpus indexed (484 chunks), chunker + boilerplate
       strip, retriever, query CLI + Streamlit UI
-- [~] **M2 Measured retrieval** — harness + tests done; full loop proven
-      end-to-end (recall@5 = 1.00 over **2** verified questions — proves the
-      pipeline, but the sample is far too small to be a quality verdict).
-      Remaining: expand the golden set to ~10-15 diverse verified questions.
+- [x] **M2 Measured retrieval** — 10-question verified golden set (both
+      rulebooks, diverse themes). **recall@5 = 0.60** (6/10) — the baseline every
+      retrieval change is now measured against. Improving it = M6.
 - [ ] **M3 Answer layer** — orchestrator: retrieved chunks → prompt → LLM →
       `{answer, citations}` (structured JSON, ADR-0006)
 - [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
@@ -38,7 +37,7 @@ Rough order; each milestone is shippable on its own.
 - [ ] **M9 Robust ingestion** — layout-aware extraction (PyMuPDF/Docling);
       image/scanned PDFs via OCR or a vision model
 
-**Where we are:** end of M1, starting M2.
+**Where we are:** M2 done (recall@5 = 0.60 baseline). Next: M3.
 
 ---
 
@@ -79,6 +78,11 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04 (M2 done)** — 10-question verified golden set (domain research;
+  pages confirmed from source, not the retriever). **recall@5 = 0.60** (6/10).
+  Misses: currency, charging-principle, remittance-length, value-limits — the
+  targets for M6 (rerank / hybrid search) or a k sweep. This is the baseline all
+  retrieval changes get measured against.
 - **2026-07-04 (later)** — Ran M2 end-to-end: recall@5 = 1.00 over 2 verified
   questions (proves the loop; not a quality verdict). Golden-set work caught a
   **corpus gap** — pacs.* absent from the rulebooks → backlog — and a bad

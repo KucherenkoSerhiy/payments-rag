@@ -1,37 +1,77 @@
 # Retrieval golden set — the ground truth for the recall@k eval.
 #
-# Each entry: a real question + the page(s) whose text actually ANSWERS it.
-# YOU label the pages with domain knowledge — the eval is only as good as this
-# file (a biased or tiny set gives a meaningless number; see ADR-0012).
+# Each entry: a real question + the page(s) whose text ANSWERS it. Pages were
+# verified by reading the source PDFs directly (NOT via the retriever), so the
+# labels are unbiased — the eval measures the retriever, not itself.
 #
-# How to label one question:
-#   1. Find candidates:  uv run python -m payments_rag.cli query "your question"
-#   2. Open the cited PDF page(s) in corpus/raw/ and CONFIRM the text truly
-#      answers it. Retrieval candidates are hints, NOT ground truth — verify.
-#   3. Put the confirmed source + page number(s) in answer_pages.
+# Coverage spans both rulebooks and diverse themes (timing, availability,
+# settlement, currency, charges, remittance, recall, limits). ~10 entries; grow
+# it over time. See ADR-0012.
 #
-# Aim for ~10-15 entries, DIVERSE in theme (timing, availability, message
-# datasets, returns, charges, definitions) — not all one topic.
+# NOTE — pacs.004 / pacs.008 questions are intentionally absent: those ISO 20022
+# message names have 0 occurrences in the EPC *rulebooks* (they live in the
+# Implementation Guidelines, not yet indexed). See ROADMAP "corpus gap".
+
+# ---- SCT Inst rulebook ----
 
 - id: sct-inst-max-execution-time
   question: "What is the target maximum execution time for an SCT Inst payment?"
   answer_pages:
     - source: sct_inst_rulebook_2025.pdf
-      pages: [26]   # verified: "Target maximum execution time: Latest at 5 seconds after the Time Stamp"
+      pages: [19, 26]   # "within 5 seconds" / "Target maximum execution time: Latest at 5 seconds"
 
 - id: sct-inst-availability
   question: "Is the SCT Inst scheme available on weekends and public holidays?"
   answer_pages:
     - source: sct_inst_rulebook_2025.pdf
-      pages: [17]   # verified: "available 24 hours a day and on all Calendar Days of the year"
+      pages: [17]       # "available 24 hours a day and on all Calendar Days of the year"
+
+- id: sct-inst-timeout-no-confirmation
+  question: "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?"
+  answer_pages:
+    - source: sct_inst_rulebook_2025.pdf
+      pages: [15, 31]   # "restore the Originator's Payment Account to the state it would have been"
+
+- id: sct-inst-settlement-certainty
+  question: "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?"
+  answer_pages:
+    - source: sct_inst_rulebook_2025.pdf
+      pages: [14]       # "reserve Funds ... This provides upfront settlement certainty"
+
+- id: sct-inst-currency
+  question: "In what currency are SCT Inst payments executed?"
+  answer_pages:
+    - source: sct_inst_rulebook_2025.pdf
+      pages: [19]       # "credit transfers in euro"
+
+# ---- SCT (standard) rulebook ----
 
 - id: sct-max-execution-time
-  question: "What is the maximum execution time for a standard (non-instant) SCT?"
+  question: "What is the maximum execution time for a standard SCT credit transfer?"
   answer_pages:
     - source: sct_rulebook_2025.pdf
-      pages: []     # TODO: candidate pages 18 / 27 (term appears there) — verify which states it
+      pages: [27]       # 4.2.3: "credited ... within one Banking Business Day following ... receipt"
 
-# NOTE — pacs.004 / pacs.008 questions are intentionally omitted: those ISO 20022
-# message names do NOT appear in the EPC *rulebooks* (0 occurrences). The rulebooks
-# use dataset (DS-xx) names; the pacs.* mapping lives in the Implementation
-# Guidelines, which are not yet indexed. See ROADMAP "corpus gap".
+- id: sct-charging-principle
+  question: "How are charges shared between the originator and beneficiary in a standard SCT?"
+  answer_pages:
+    - source: sct_rulebook_2025.pdf
+      pages: [27]       # 4.2.4: "shared principle ... Originator and Beneficiary are charged separately"
+
+- id: sct-remittance-length
+  question: "What is the maximum length of remittance information in a standard SCT?"
+  answer_pages:
+    - source: sct_rulebook_2025.pdf
+      pages: [21]       # "up to a maximum of 140 characters"
+
+- id: sct-recall-deadlines
+  question: "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?"
+  answer_pages:
+    - source: sct_rulebook_2025.pdf
+      pages: [31]       # "10 Banking Business Days ... Duplicate/Technical; 13 months ... Fraudulent"
+
+- id: sct-value-limits
+  question: "Does the SCT scheme itself set a maximum transaction amount?"
+  answer_pages:
+    - source: sct_rulebook_2025.pdf
+      pages: [21]       # 2.5 Value Limits: limits may exist between Participants, not set by the Scheme
