@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 
 from payments_rag import db
-from payments_rag.retriever import retrieve
+from payments_rag.retriever import retrieve, retrieve_hybrid
 
 DEFAULT_GOLDEN = "evals/retrieval_golden_set.yaml"
 
@@ -78,9 +78,10 @@ def _expected_pairs(entry: dict) -> set[tuple[str, int]]:
     return pairs
 
 
-def run(golden_path: str | Path = DEFAULT_GOLDEN, k: int = 5) -> float:
+def run(golden_path: str | Path = DEFAULT_GOLDEN, k: int = 5, hybrid: bool = False) -> float:
     entries = _load_golden(golden_path)
-    print(f"\nRetrieval eval @k={k}  ({len(entries)} questions)\n")
+    retriever = retrieve_hybrid if hybrid else retrieve
+    print(f"\nRetrieval eval @k={k} [{'hybrid' if hybrid else 'vector'}]  ({len(entries)} questions)\n")
 
     hit_flags: list[bool] = []
     with db.connect() as conn:
@@ -89,7 +90,7 @@ def run(golden_path: str | Path = DEFAULT_GOLDEN, k: int = 5) -> float:
             if not expected:
                 print(f"  [SKIP] {entry['id']}: no answer_pages labelled yet")
                 continue
-            results = retrieve(conn, entry["question"], k=k)
+            results = retriever(conn, entry["question"], k=k)
             retrieved = [(r.source, r.page) for r in results]
             hit = hit_at_k(retrieved, expected, k)
             hit_flags.append(hit)
@@ -107,8 +108,9 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="evals.retrieval_eval")
     parser.add_argument("-k", type=int, default=5, help="top-k to score against")
     parser.add_argument("--golden", default=DEFAULT_GOLDEN)
+    parser.add_argument("--hybrid", action="store_true", help="use hybrid (vector+keyword) retrieval")
     args = parser.parse_args(argv)
-    run(args.golden, args.k)
+    run(args.golden, args.k, args.hybrid)
 
 
 if __name__ == "__main__":

@@ -24,4 +24,4 @@ relitigate a settled call.
 | [0011](0011-repo-layout.md) | Code in nested `app/`, separate from docs | Accepted |
 | [0012](0012-golden-set-in-repo.md) | Golden eval set: YAML in repo | Accepted (not yet built) |
 | [0013](0013-deploy-docker-local.md) | Deploy: Docker, local only | Accepted |
-| [0014](0014-improve-retrieval-rerank-hybrid.md) | Improve retrieval: rerank / hybrid | Proposed (finalize after M6) |
+| [0014](0014-improve-retrieval-rerank-hybrid.md) | Improve retrieval: rerank / hybrid | Accepted (vector default; hybrid optional) |

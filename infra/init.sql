@@ -16,3 +16,8 @@ CREATE TABLE IF NOT EXISTS chunks (
 -- Approximate nearest-neighbour index for cosine distance.
 CREATE INDEX IF NOT EXISTS chunks_embedding_idx
     ON chunks USING hnsw (embedding vector_cosine_ops);
+
+-- Full-text (keyword) index for hybrid search — lexical ranking to complement
+-- the semantic vector search. English config matches the corpus language.
+CREATE INDEX IF NOT EXISTS chunks_text_fts_idx
+    ON chunks USING gin (to_tsvector('english', text));

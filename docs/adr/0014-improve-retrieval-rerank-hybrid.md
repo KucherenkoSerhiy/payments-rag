@@ -1,6 +1,6 @@
 # 0014 — Improve retrieval quality (reranking and/or hybrid search)
 
-**Status:** Proposed 2026-07-04 — to be finalized after M6 measurement
+**Status:** Accepted 2026-07-04 — decision: keep vector default, hybrid retained as an option
 
 ## Context
 `recall@5 = 0.60` on the golden set. Because retrieval is the ceiling on answer
@@ -54,3 +54,27 @@ stable numbers.)
 Finalize this ADR (Accepted, naming the concrete choice) only after measuring the
 candidates against the golden set. Until then, this records the direction, not a
 committed technique. Current lean from the diagnostic: **hybrid first**.
+
+## Final decision (2026-07-04)
+Built hybrid (OR-keyword + vector, equal-weight RRF) and measured it fairly —
+after fixing the keyword arm to OR-semantics, since `plainto_tsquery` AND-s every
+question word and so matched nothing on natural-language questions (a confounded
+first run). Result: **hybrid recall@5 = 0.60 = vector 0.60**, but a *different*
+composition — hybrid rescued `sct-inst-currency` (keyword win) and lost
+`sct-recall-deadlines` (RRF displaced a clean vector hit). It trades misses; net
+neutral on the 10-question set.
+
+Decisions:
+- **Keep vector as the default.** Hybrid doesn't net-improve and adds a moving
+  part — don't default to it.
+- **Retain hybrid as an option** (`retrieve_hybrid`, eval `--hybrid`): built,
+  tested, demonstrably has signal; useful if the corpus grows or a keyword-heavy
+  workload appears.
+- **Reranking not pursued:** ceiling here is recall@20 = 0.70 (+0.10 max) — not
+  worth a new dependency for a 2-document learning corpus.
+- **Deprioritize further tuning** (fusion weighting, k0, `-3-large`). Diminishing
+  returns on a toy corpus; revisit only with a bigger corpus + golden set.
+
+M6's value was the measurement discipline (vector 0.60 / rerank-ceiling 0.70 /
+hybrid neutral) and reusable infra — not a headline number. Knowing when to stop
+tuning is the call.

@@ -29,9 +29,10 @@ Rough order; each milestone is shippable on its own.
       (ADR-0012); accuracy number documented in README
 - [ ] **M5 Reliability** — API retry/timeout/circuit-breaker; smoke test; CI
       (GitHub Actions running unit + a small eval subset)
-- [ ] **M6 Retrieval quality** — reranking / hybrid (vector+BM25) / semantic
-      chunking — each adopted only if the eval (M2) shows it helps. See ADR-0014
-      (Proposed) for the direction + trade-offs.
+- [x] **M6 Retrieval quality** — measured all levers: vector 0.60,
+      rerank-ceiling 0.70, hybrid 0.60 (neutral trade). Kept vector default;
+      hybrid built + retained as an option (`--hybrid`). Further tuning
+      deprioritized on a toy corpus. See ADR-0014 (Accepted).
 - [ ] **M7 Open-source polish** — LICENSE (MIT); README for outsiders; PR
       template; push to public GitHub
 - [ ] **M8 Cloud deploy** — containerize the app; managed Postgres+pgvector;
@@ -39,8 +40,9 @@ Rough order; each milestone is shippable on its own.
 - [ ] **M9 Robust ingestion** — layout-aware extraction (PyMuPDF/Docling);
       image/scanned PDFs via OCR or a vision model
 
-**Where we are:** M3 done — grounded, cited answers work end-to-end. Next: M4
-(answer eval) or M5 (reliability).
+**Where we are:** M0–M3 + M6 done. Full loop works; retrieval measured
+(recall@5 = 0.60, vector default, hybrid optional). Next: M4 (answer eval) or
+M5 (reliability).
 
 ---
 
@@ -81,6 +83,10 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-04 (M6 done)** — Built hybrid (OR-keyword + vector, RRF). Fair
+  measurement: hybrid recall@5 = 0.60 = vector — different mix (gained currency,
+  lost recall-deadlines), net neutral. Decision: vector stays default, hybrid
+  optional, stop tuning (toy corpus). All levers now measured. ADR-0014 Accepted.
 - **2026-07-04 (M6 diagnostic)** — Recall curve: @5=0.60, @10=0.70, @20=0.70
   (plateau). 3/10 questions miss even at top-20 → **recall-bound, not
   rank-bound.** Reranking headroom only +0.10 here; **hybrid search (BM25) is the

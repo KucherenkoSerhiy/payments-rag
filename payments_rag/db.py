@@ -108,3 +108,34 @@ def source_counts(conn: psycopg.Connection) -> list[tuple[str, int]]:
         "SELECT source, count(*) FROM chunks GROUP BY source ORDER BY count(*) DESC"
     ).fetchall()
     return [(r[0], int(r[1])) for r in rows]
+
+
+def keyword_search(
+    conn: psycopg.Connection, query_text: str, *, k: int = 20
+) -> list[tuple[int, str, str, int | None, float]]:
+    """Full-text keyword search: the k best chunks by lexical relevance.
+
+    Complements `nearest` (semantic). The query's salient terms are OR-ed, not
+    AND-ed: a natural-language question shares only some words with a terse spec
+    passage, so requiring every word (AND) matches nothing. OR-ing lets a chunk
+    match on ANY term and `ts_rank` rewards those covering more of them. Returns
+    (id, source, text, page, rank), best first.
+
+    Implementation: plainto_tsquery already stems + drops stopwords and joins
+    terms with `&`; we rewrite `&` -> `|` to turn the AND into an OR.
+    """
+    rows = conn.execute(
+        """
+        WITH q AS (
+            SELECT replace(plainto_tsquery('english', %s)::text, '&', '|')::tsquery AS query
+        )
+        SELECT c.id, c.source, c.text, c.page,
+               ts_rank(to_tsvector('english', c.text), q.query) AS rank
+        FROM chunks c, q
+        WHERE to_tsvector('english', c.text) @@ q.query
+        ORDER BY rank DESC
+        LIMIT %s
+        """,
+        (query_text, k),
+    ).fetchall()
+    return [(int(r[0]), r[1], r[2], r[3], float(r[4])) for r in rows]
