@@ -55,7 +55,11 @@ _client: Anthropic | None = None
 def _get_client() -> Anthropic:
     global _client
     if _client is None:
-        _client = Anthropic(api_key=config.require_anthropic_key())
+        _client = Anthropic(
+            api_key=config.require_anthropic_key(),
+            timeout=config.API_TIMEOUT,
+            max_retries=config.API_MAX_RETRIES,
+        )
     assert _client is not None
     return _client
 

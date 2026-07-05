@@ -51,3 +51,10 @@ def require_openai_key() -> str:
 DATABASE_URL: str = os.environ.get(
     "DATABASE_URL", "postgresql://payments:payments@localhost:5433/payments_rag"
 )
+
+# --- API resilience (both the LLM and embedding clients) ---
+# The SDKs already retry 429/5xx with backoff; it's the default 10-minute timeout
+# that lets a wedged connection hang for minutes. A short per-attempt timeout
+# fails fast so the built-in retry can reconnect.
+API_TIMEOUT: float = 60.0  # seconds per request attempt
+API_MAX_RETRIES: int = 3
