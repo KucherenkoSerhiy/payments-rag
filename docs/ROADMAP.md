@@ -67,6 +67,8 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 - **Next:** M2 retrieval eval (needs your question→page labels).
 - **Reliability:** retry/timeout/circuit-breaker; smoke test; CI.
 - **Quality (only when measurable):** reranking; hybrid search; semantic chunking.
+      Off-the-shelf options (ranx, BGE cross-encoder, native-hybrid vector DBs) in
+      `docs/prior-art.md` — revisit if retrieval becomes a real bottleneck.
 - **Retrieval scoping:** `nearest` searches the whole table — add a per-source
       filter (e.g. search only one rulebook). [architecture.md gap]
 - **Public:** LICENSE; outsider README; PR template; public GitHub remote.
