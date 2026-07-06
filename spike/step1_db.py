@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pgvector.psycopg import register_vector
 
-from payments_rag import db
+from payments_rag.adapters import db
 from spike._log import setup
 
 log = setup()

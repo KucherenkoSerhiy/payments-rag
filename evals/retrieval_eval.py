@@ -21,8 +21,8 @@ from pathlib import Path
 
 import yaml
 
-from payments_rag import db
-from payments_rag.retriever import retrieve, retrieve_hybrid
+from payments_rag.adapters import db
+from payments_rag.retrieval.retriever import retrieve, retrieve_hybrid
 
 DEFAULT_GOLDEN = "evals/retrieval_golden_set.yaml"
 

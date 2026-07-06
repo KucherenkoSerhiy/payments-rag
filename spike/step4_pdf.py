@@ -16,9 +16,9 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from payments_rag import db
-from payments_rag.chunker import chunk_text
-from payments_rag.embedding import embed, embed_one
+from payments_rag.adapters import db
+from payments_rag.indexing.chunker import chunk_text
+from payments_rag.adapters.embedding import embed, embed_one
 from spike._log import setup
 
 log = setup()

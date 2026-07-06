@@ -16,10 +16,10 @@ from pathlib import Path
 import psycopg
 from pypdf import PdfReader
 
-from payments_rag import db
-from payments_rag.chunker import chunk_text
-from payments_rag.embedding import embed
-from payments_rag.textprep import clean_page, find_repeated_lines
+from payments_rag.adapters import db
+from payments_rag.indexing.chunker import chunk_text
+from payments_rag.adapters.embedding import embed
+from payments_rag.indexing.textprep import clean_page, find_repeated_lines
 
 logger = logging.getLogger(__name__)
 

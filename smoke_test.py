@@ -6,7 +6,7 @@ Exit 0 = healthy, 1 = broken. Hits the real DB + APIs (not a unit test).
 
 from __future__ import annotations
 
-from payments_rag import db
+from payments_rag.adapters import db
 from payments_rag.orchestrator import answer
 
 BASELINE_Q = "How fast does an SCT Inst payment settle?"

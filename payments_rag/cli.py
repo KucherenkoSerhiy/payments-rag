@@ -15,10 +15,10 @@ import argparse
 import logging
 import textwrap
 
-from payments_rag import db
-from payments_rag.indexer import CorpusIndexer
+from payments_rag.adapters import db
+from payments_rag.indexing.indexer import CorpusIndexer
 from payments_rag.orchestrator import answer as answer_question
-from payments_rag.retriever import retrieve
+from payments_rag.retrieval.retriever import retrieve
 
 log = logging.getLogger("payments_rag")
 

@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import pytest
 
-from payments_rag import config, db
-from payments_rag.retriever import retrieve
+from payments_rag import config
+from payments_rag.adapters import db
+from payments_rag.retrieval.retriever import retrieve
 
 TEST_SOURCE = "pytest-integration"
 
@@ -74,7 +75,7 @@ def test_dimension_guard_rejects_wrong_size(conn):
 def test_retrieve_wraps_rows_into_dataclass(conn, monkeypatch):
     _seed(conn)
     # Stub the embedding call so retrieve() needs no OpenAI key / network.
-    monkeypatch.setattr("payments_rag.retriever.embed_one", lambda q: _unit_vec(2))
+    monkeypatch.setattr("payments_rag.retrieval.retriever.embed_one", lambda q: _unit_vec(2))
     results = retrieve(conn, "irrelevant question text", k=1)
     assert len(results) == 1
     top = results[0]

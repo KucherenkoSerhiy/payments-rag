@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from payments_rag.chunker import chunk_text, split_sentences
+from payments_rag.indexing.chunker import chunk_text, split_sentences
 
 # 10 sentences, ~6 words each.
 SENTENCES = [f"This is sentence number {i} here." for i in range(10)]

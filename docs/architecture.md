@@ -5,25 +5,35 @@ dashed/"planned" = Week 3+.
 
 ## Module map
 
-```
-cli.py / ui/streamlit_app.py   entry points (index / query / stats / reset)
-        │
-        ├── indexer.py         offline: PDF → clean → chunk → embed → store
-        │      ├── textprep.py   pure: strip repeated header/footer boilerplate
-        │      ├── chunker.py    pure: sentence-aware split + overlap
-        │      ├── embedding.py  adapter: OpenAI text-embedding-3-small (batched)
-        │      └── db.py         adapter: pgvector insert (dimension-guarded)
-        │
-        └── retriever.py       online: question → top-k chunks
-               ├── embedding.py  adapter: embed the question (same model!)
-               └── db.py         adapter: cosine KNN (`<=>`, HNSW index)
+The package is grouped by concern so the folder tree mirrors the architecture
+(ADR-0015): `indexing/`, `retrieval/`, `adapters/`, plus the `orchestrator`.
 
-config.py   settings singleton (models, DSN, lazy key validation)
-infra/      docker-compose (Postgres+pgvector) + init.sql (schema + HNSW index)
+```
+cli.py / ui/streamlit_app.py / smoke_test.py   entry points
+        │
+        ├── orchestrator.py     answer flow: retrieve → prompt → LLM → cited answer
+        │
+        ├── indexing/           offline: PDF → clean → chunk → embed → store
+        │      ├── indexer.py     CorpusIndexer (the pipeline)
+        │      ├── textprep.py    pure: strip repeated header/footer boilerplate
+        │      └── chunker.py     pure: sentence-aware split + overlap
+        │
+        ├── retrieval/          online: question → top-k chunks
+        │      ├── retriever.py   vector + hybrid (RRF) retrieval
+        │      └── fusion.py      pure: reciprocal rank fusion
+        │
+        └── adapters/           external services (Ports & Adapters)
+               ├── db.py          Postgres + pgvector (KNN + full-text)
+               ├── embedding.py   OpenAI text-embedding-3-small
+               └── llm.py         Anthropic Claude → structured {answer, citations}
+
+config.py   settings (models, DSN, API timeouts, lazy key validation)
+infra/      docker-compose (Postgres+pgvector) + init.sql (schema + HNSW + FTS)
 ```
 
-Dependencies point inward: entry points → indexer/retriever → adapters → config.
-Nothing in the library imports the entry points.
+Dependencies point inward: entry points → orchestrator → indexing/retrieval →
+adapters → config. Nothing in `adapters/` imports the flow layers, and nothing
+in the library imports the entry points.
 
 ## Path 1 — Indexing (offline, when the corpus changes)
 

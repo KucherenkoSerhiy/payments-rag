@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from payments_rag.textprep import clean_page, find_repeated_lines
+from payments_rag.indexing.textprep import clean_page, find_repeated_lines
 
 # Simulate a 6-page doc: same header (with varying page number) on every page,
 # plus body text that varies in WORDS per page (real prose differs in words, not

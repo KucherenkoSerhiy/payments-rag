@@ -18,8 +18,8 @@ import streamlit as st
 # default — add it so `payments_rag` (one level up) is importable.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from payments_rag import db  # noqa: E402  (import after sys.path bootstrap)
-from payments_rag.retriever import retrieve  # noqa: E402
+from payments_rag.adapters import db  # noqa: E402  (import after sys.path bootstrap)
+from payments_rag.retrieval.retriever import retrieve  # noqa: E402
 
 st.set_page_config(page_title="Payments RAG — retrieval", page_icon="🔎")
 st.title("Payments RAG — retrieval")

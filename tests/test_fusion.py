@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from payments_rag.fusion import reciprocal_rank_fusion
+from payments_rag.retrieval.fusion import reciprocal_rank_fusion
 
 
 def test_single_list_preserves_order() -> None:

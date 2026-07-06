@@ -1,13 +1,13 @@
 """Tests for the orchestrator — your M3 target to make green.
 
 No DB and no API: `answer` is exercised with `retrieve`, `build_prompt`, and
-`_llm_json` monkeypatched, so it tests only your wiring/mapping logic.
+`llm.complete_json` monkeypatched, so it tests only your wiring/mapping logic.
 """
 
 from __future__ import annotations
 
 from payments_rag.orchestrator import AnswerResult, Citation, answer, build_prompt
-from payments_rag.retriever import RetrievedChunk
+from payments_rag.retrieval.retriever import RetrievedChunk
 
 CHUNKS = [
     RetrievedChunk(id=42, source="a.pdf", page=26, text="Settlement is 5 seconds.", distance=0.1),
@@ -31,7 +31,7 @@ def test_answer_maps_cited_ids_and_ignores_invented_ones(monkeypatch) -> None:
     monkeypatch.setattr("payments_rag.orchestrator.retrieve", lambda conn, q, k=5: CHUNKS)
     monkeypatch.setattr("payments_rag.orchestrator.build_prompt", lambda q, chunks: "PROMPT")
     monkeypatch.setattr(
-        "payments_rag.orchestrator._llm_json",
+        "payments_rag.adapters.llm.complete_json",
         lambda prompt: {"answer": "5 seconds.", "citations": [42, 999]},
     )
 

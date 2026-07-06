@@ -12,9 +12,9 @@ from dataclasses import dataclass
 
 import psycopg
 
-from payments_rag import db
-from payments_rag.embedding import embed_one
-from payments_rag.fusion import reciprocal_rank_fusion
+from payments_rag.adapters import db
+from payments_rag.adapters.embedding import embed_one
+from payments_rag.retrieval.fusion import reciprocal_rank_fusion
 
 
 @dataclass

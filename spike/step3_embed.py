@@ -6,8 +6,8 @@ similarity search returns the semantically closest stored sentence.
 
 from __future__ import annotations
 
-from payments_rag import db
-from payments_rag.embedding import embed, embed_one
+from payments_rag.adapters import db
+from payments_rag.adapters.embedding import embed, embed_one
 from spike._log import setup
 
 log = setup()
