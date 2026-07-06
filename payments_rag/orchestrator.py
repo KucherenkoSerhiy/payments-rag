@@ -50,8 +50,8 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
     by_id = {c.id: c for c in chunks}
     citations: list[Citation] = []
     seen: set[int] = set()
-    for cid in data["citations"]:      # keep the model's citation order
-        chunk = by_id.get(cid)         # None if the model cited an id we didn't retrieve
+    for cid in data["citations"]:
+        chunk = by_id.get(cid)
         if chunk is None or cid in seen:
             continue
         seen.add(cid)
