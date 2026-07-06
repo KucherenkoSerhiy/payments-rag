@@ -27,8 +27,10 @@ Rough order; each milestone is shippable on its own.
       source+page. `cli ask` works end-to-end. `build_prompt`/`answer` hand-written.
 - [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
       (ADR-0012); accuracy number documented in README
-- [ ] **M5 Reliability** — API retry/timeout/circuit-breaker; smoke test; CI
-      (GitHub Actions running unit + a small eval subset)
+- [x] **M5 Reliability (lean)** — API timeouts + retries done (60s / 3 retries,
+      `config`); smoke test done (`smoke_test.py`, green). Circuit breaker
+      skipped (overkill for a single-user app). CI deferred to M7 (needs the
+      GitHub remote + service containers).
 - [x] **M6 Retrieval quality** — measured all levers: vector 0.60,
       rerank-ceiling 0.70, hybrid 0.60 (neutral trade). Kept vector default;
       hybrid built + retained as an option (`--hybrid`). Further tuning
@@ -85,6 +87,9 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-06 (M5 lean done)** — API client timeouts (60s) + retries set (kills
+  the multi-minute connection stalls). Smoke test (`smoke_test.py`) green
+  end-to-end. Circuit breaker skipped; CI deferred to M7.
 - **2026-07-04 (M6 done)** — Built hybrid (OR-keyword + vector, RRF). Fair
   measurement: hybrid recall@5 = 0.60 = vector — different mix (gained currency,
   lost recall-deadlines), net neutral. Decision: vector stays default, hybrid
