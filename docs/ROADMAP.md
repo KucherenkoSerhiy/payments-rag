@@ -25,8 +25,10 @@ Rough order; each milestone is shippable on its own.
 - [x] **M3 Answer layer** — `orchestrator.py`: retrieve → grounded prompt → LLM
       → `{answer, citations}` (structured outputs, ADR-0006) → citations mapped to
       source+page. `cli ask` works end-to-end. `build_prompt`/`answer` hand-written.
-- [ ] **M4 Answer eval** — cross-model LLM-as-judge (ADR-0007) + golden Q&A set
-      (ADR-0012); accuracy number documented in README
+- [x] **M4 Answer eval** — cross-model LLM-as-judge (GPT-4 grades Claude, ADR-0007)
+      + golden Q&A set (10 Q, ADR-0012). **mean 85.5 / pass-rate 90%** (9/10 ≥70).
+      The one 0 (currency) is a retrieval miss surfacing as an answer failure —
+      generation can't recover what retrieval didn't fetch. `summarize` hand-written.
 - [x] **M5 Reliability (lean)** — API timeouts + retries done (60s / 3 retries,
       `config`); smoke test done (`smoke_test.py`, green). Circuit breaker
       skipped (overkill for a single-user app). CI deferred to M7 (needs the
@@ -42,9 +44,9 @@ Rough order; each milestone is shippable on its own.
 - [ ] **M9 Robust ingestion** — layout-aware extraction (PyMuPDF/Docling);
       image/scanned PDFs via OCR or a vision model
 
-**Where we are:** M0–M3 + M6 done. Full loop works; retrieval measured
-(recall@5 = 0.60, vector default, hybrid optional). Next: M4 (answer eval) or
-M5 (reliability).
+**Where we are:** M0–M6 done. Full loop works and is measured on both axes —
+retrieval (recall@5 = 0.60) and answers (mean 85.5 / 90% pass). Next public step
+is M7 (open-source polish).
 
 ---
 
@@ -87,6 +89,13 @@ not just reviewing. The tracker flags hands-on opportunities as they come up.
 ---
 
 ## Status log
+- **2026-07-06 (M4 done)** — Answer-quality eval: GPT-4 judges Claude's answers
+  against a 10-Q reference set (cross-model, ADR-0007). **mean 85.5, pass-rate
+  90%** (9/10 ≥70). The single 0 (currency) is a *retrieval* miss — the euro page
+  wasn't in the vector top-5, so the answer couldn't state it (ties M3's thesis:
+  generation is capped by retrieval; notably the one question hybrid rescues).
+  Judge grades completeness tightly (docked extra-but-correct detail) — a prompt
+  knob if we want it. `summarize` hand-written (4th hands-on piece).
 - **2026-07-06 (M5 lean done)** — API client timeouts (60s) + retries set (kills
   the multi-minute connection stalls). Smoke test (`smoke_test.py`) green
   end-to-end. Circuit breaker skipped; CI deferred to M7.
