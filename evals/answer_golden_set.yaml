@@ -1,0 +1,47 @@
+# Answer golden set — reference answers for the answer-quality eval (M4).
+#
+# Each entry: a question + a concise *reference* answer (the ground truth). The
+# production answer (Claude, via orchestrator.answer) is graded against this by a
+# DIFFERENT model (GPT-4) — cross-model judging, so no model marks its own
+# homework (ADR-0007). Reference answers are grounded in the corpus (same facts
+# the retrieval golden set points at).
+
+- id: sct-inst-max-execution-time
+  question: "What is the target maximum execution time for an SCT Inst payment?"
+  expected_answer: "5 seconds — the target maximum execution time is at most 5 seconds after the Originator PSP applies the time stamp."
+
+- id: sct-inst-availability
+  question: "Is the SCT Inst scheme available on weekends and public holidays?"
+  expected_answer: "Yes — the scheme is available 24 hours a day, on all calendar days of the year (24/7/365)."
+
+- id: sct-inst-timeout-no-confirmation
+  question: "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?"
+  expected_answer: "It must immediately restore the Originator's payment account to the state it would have been in had the transaction not taken place."
+
+- id: sct-inst-settlement-certainty
+  question: "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?"
+  expected_answer: "The Originator PSP reserves funds on its account as cover for the transaction, which provides upfront settlement certainty."
+
+- id: sct-inst-currency
+  question: "In what currency are SCT Inst payments executed?"
+  expected_answer: "Euro."
+
+- id: sct-max-execution-time
+  question: "What is the maximum execution time for a standard SCT credit transfer?"
+  expected_answer: "The amount is credited to the Beneficiary PSP's account within one Banking Business Day of receipt of the credit transfer instruction."
+
+- id: sct-charging-principle
+  question: "How are charges shared between the originator and beneficiary in a standard SCT?"
+  expected_answer: "Under the 'SHARE' principle: the Originator and Beneficiary are each charged separately by their own PSP."
+
+- id: sct-remittance-length
+  question: "What is the maximum length of remittance information in a standard SCT?"
+  expected_answer: "140 characters."
+
+- id: sct-recall-deadlines
+  question: "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?"
+  expected_answer: "Within 10 Banking Business Days for duplicate sending or technical problems, and within 13 months for fraud."
+
+- id: sct-value-limits
+  question: "Does the SCT scheme itself set a maximum transaction amount?"
+  expected_answer: "No — the scheme sets no value limit; limits may exist between participants or CSMs, not by the scheme."
