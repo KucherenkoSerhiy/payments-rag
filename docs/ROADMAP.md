@@ -52,17 +52,31 @@ is M7 (open-source polish).
 
 ## Track B — Skill (goal: advanced Python + RAG, writing code myself)
 
+**Foundational arc — done** (retrieval, eval, generation, structured outputs):
 - [x] Read & understand the codebase (modules + tests reviewed)
-- [ ] **Write a component yourself** — start small; the M2 recall@k scorer is a
-      good first one (simple, pure-Python, testable)
-- [ ] RAG evaluation metrics — recall@k, precision@k, MRR; retrieval vs answer eval
-- [ ] Prompt construction + structured outputs (for M3)
-- [ ] Reliability patterns — retry, timeout, circuit breaker, idempotency (for M5)
-- [ ] Containerization & cloud deploy (for M8)
-- [ ] Postgres operators / indexing internals (partially covered)
+- [x] Write components yourself — `recall_at_k`, `reciprocal_rank_fusion`,
+      `summarize`, `build_prompt`/`answer` (4 hand-written, each tested)
+- [x] RAG evaluation metrics — recall@k / precision@k / MRR (retrieval) +
+      cross-model LLM-as-judge (answers); both measured (0.60 / 85.5)
+- [x] Prompt construction + structured outputs — incl. constrained-decoding
+      internals (grammar/FSM + logit masking). See `docs/glossary.md` + diagram.
+- [ ] Reliability patterns — timeout + retry configured (M5) but not hand-written;
+      circuit breaker / idempotency skipped (single-user). **Partial.**
+- [ ] Postgres operators / indexing internals — operators + HNSW + GIN/FTS
+      covered; deeper index internals **partial**.
 
-Honest note: "advanced" is a several-month arc and needs you writing real Python,
-not just reviewing. The tracker flags hands-on opportunities as they come up.
+**Frontier — live learning edges** (each documented problem-first, with a diagram):
+- [ ] **Reranking — cross-encoder** (next hands-on; targets the measured recall
+      ceiling — bi-encoder vs cross-encoder)
+- [ ] Breaking the retrieval ceiling — query expansion, HyDE, multi-query, late
+      interaction (ColBERT)
+- [ ] Deeper answer eval — faithfulness / groundedness vs answer-correctness; RAGAS
+- [ ] Agentic patterns — tool use / function calling (same structured-output machinery)
+- [ ] Containerization & cloud deploy (for M8)
+
+**Practice:** capture each topic as we go (labels slip otherwise) — state the
+*problem* first, then the concept, then a diagram. Running term list in
+`docs/glossary.md`.
 
 ---
 
