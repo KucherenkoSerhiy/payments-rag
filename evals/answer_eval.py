@@ -13,6 +13,8 @@ manually/weekly, not per-PR.
 from __future__ import annotations
 
 import argparse
+import json
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -21,7 +23,7 @@ from evals.judge import judge
 from payments_rag.adapters import db
 from payments_rag.orchestrator import answer
 
-DEFAULT_GOLDEN = "evals/answer_golden_set.yaml"
+DEFAULT_GOLDEN = str(Path(__file__).resolve().parent / "answer_golden_set.yaml")
 PASS_THRESHOLD = 70
 
 
@@ -48,16 +50,37 @@ def _load_golden(path: str | Path) -> list[dict]:
     return yaml.safe_load(Path(path).read_text(encoding="utf-8")) or []
 
 
+def _save_results(mean: float, pass_rate: float, details: list[dict]) -> None:
+    """Persist the run so the Evals UI can show it without re-paying for a run."""
+    out = Path(__file__).resolve().parent.parent / "data" / "last_answer_eval.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(
+        json.dumps(
+            {
+                "at": datetime.now().isoformat(timespec="seconds"),
+                "mean": round(mean, 1),
+                "pass_rate": round(pass_rate, 3),
+                "threshold": PASS_THRESHOLD,
+                "per_question": details,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+
 def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
     entries = _load_golden(golden_path)
     print(f"\nAnswer eval ({len(entries)} questions) — Claude answers, GPT-4 judges\n")
 
     scores: list[int] = []
+    details: list[dict] = []
     with db.connect() as conn:
         for entry in entries:
             result = answer(conn, entry["question"])
             score, critique = judge(entry["question"], entry["expected_answer"], result.answer)
             scores.append(score)
+            details.append({"id": entry["id"], "score": score, "critique": critique})
             print(f"  [{score:3d}]  {entry['id']}  — {critique}")
 
     mean, pass_rate = summarize(scores)
@@ -65,6 +88,7 @@ def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
         f"\nmean = {mean:.1f}   pass rate (>= {PASS_THRESHOLD}) = {pass_rate:.0%}   "
         f"({len(scores)} questions)\n"
     )
+    _save_results(mean, pass_rate, details)
     return mean, pass_rate
 
 

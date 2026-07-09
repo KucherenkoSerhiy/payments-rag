@@ -22,3 +22,6 @@ corpus/processed/*
 # Personal logs (per checklists.md these may be kept local)
 retro-inbox.md
 session-log.md
+
+# Runtime artifacts: query log + last eval results (regenerated locally)
+data/

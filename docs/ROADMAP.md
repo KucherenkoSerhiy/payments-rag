@@ -104,6 +104,15 @@ is M7 (open-source polish).
 ---
 
 ## Status log
+- **2026-07-09 (UI: three-view app + a real latency bug)** — Streamlit multipage
+  app (`st.navigation`): **Ask** (cited answers + evidence + per-stage timing),
+  **Evals** (live retrieval recall@k + last saved answer-eval), **Usage**
+  (query-log telemetry). Shared **Health** panel (DB status/latency/last-check).
+  New `query_log` (JSONL) — the request-logging layer Usage needed.
+  `retrieval_eval.evaluate()` + `answer_eval` result-saving added for the UI. All
+  three views verified in-browser. **Fixed a ~10s-per-query DB hang**: `.env`'s
+  `DATABASE_URL` used `localhost` → Windows IPv6 detour; normalized to `127.0.0.1`
+  in config (+ `connect_timeout`). The Health check caught it (10137ms → 27ms).
 - **2026-07-09 (Reranking, Track B)** — Built a cross-encoder reranker as a
   learning exercise (LLM-as-reranker: fanout → rescore each pair → top-k).
   **recall@5 = 0.70** (from vector 0.60) — exactly the vector recall@20 ceiling,

@@ -24,7 +24,7 @@ import yaml
 from payments_rag.adapters import db
 from payments_rag.retrieval.retriever import retrieve, retrieve_hybrid
 
-DEFAULT_GOLDEN = "evals/retrieval_golden_set.yaml"
+DEFAULT_GOLDEN = str(Path(__file__).resolve().parent / "retrieval_golden_set.yaml")
 
 
 # ===========================================================================
@@ -78,42 +78,68 @@ def _expected_pairs(entry: dict) -> set[tuple[str, int]]:
     return pairs
 
 
+def _select_retriever(hybrid: bool, rerank: bool, hyde: bool):
+    if rerank:
+        from payments_rag.retrieval.rerank import rerank_retrieve
+
+        return rerank_retrieve, "rerank"
+    if hyde:
+        from payments_rag.retrieval.hyde import retrieve_hyde
+
+        return retrieve_hyde, "hyde"
+    if hybrid:
+        return retrieve_hybrid, "hybrid"
+    return retrieve, "vector"
+
+
+def evaluate(
+    golden_path: str | Path = DEFAULT_GOLDEN,
+    k: int = 5,
+    *,
+    hybrid: bool = False,
+    rerank: bool = False,
+    hyde: bool = False,
+) -> dict:
+    """Score the golden set; return recall + per-question hits (for the UI)."""
+    entries = _load_golden(golden_path)
+    retriever, mode = _select_retriever(hybrid, rerank, hyde)
+    per_question: list[dict] = []
+    with db.connect() as conn:
+        for entry in entries:
+            expected = _expected_pairs(entry)
+            if not expected:
+                per_question.append({"id": entry["id"], "hit": None})
+                continue
+            results = retriever(conn, entry["question"], k=k)
+            retrieved = [(r.source, r.page) for r in results]
+            per_question.append({"id": entry["id"], "hit": hit_at_k(retrieved, expected, k)})
+    hits = [p["hit"] for p in per_question if p["hit"] is not None]
+    return {
+        "mode": mode,
+        "k": k,
+        "recall": recall_at_k(hits),
+        "answered": len(hits),
+        "total": len(per_question),
+        "per_question": per_question,
+    }
+
+
 def run(
     golden_path: str | Path = DEFAULT_GOLDEN,
     k: int = 5,
     hybrid: bool = False,
     rerank: bool = False,
+    hyde: bool = False,
 ) -> float:
-    entries = _load_golden(golden_path)
-    if rerank:
-        from payments_rag.retrieval.rerank import rerank_retrieve
-
-        retriever, mode = rerank_retrieve, "rerank"
-    elif hybrid:
-        retriever, mode = retrieve_hybrid, "hybrid"
-    else:
-        retriever, mode = retrieve, "vector"
-    print(f"\nRetrieval eval @k={k} [{mode}]  ({len(entries)} questions)\n")
-
-    hit_flags: list[bool] = []
-    with db.connect() as conn:
-        for entry in entries:
-            expected = _expected_pairs(entry)
-            if not expected:
-                print(f"  [SKIP] {entry['id']}: no answer_pages labelled yet")
-                continue
-            results = retriever(conn, entry["question"], k=k)
-            retrieved = [(r.source, r.page) for r in results]
-            hit = hit_at_k(retrieved, expected, k)
-            hit_flags.append(hit)
-            print(f"  [{'HIT ' if hit else 'MISS'}] {entry['id']}")
-
-    score = recall_at_k(hit_flags)
-    print(
-        f"\nrecall@{k} = {score:.2f}  "
-        f"({sum(hit_flags)}/{len(hit_flags)} answered questions)\n"
-    )
-    return score
+    res = evaluate(golden_path, k, hybrid=hybrid, rerank=rerank, hyde=hyde)
+    print(f"\nRetrieval eval @k={k} [{res['mode']}]  ({res['total']} questions)\n")
+    for p in res["per_question"]:
+        if p["hit"] is None:
+            print(f"  [SKIP] {p['id']}: no answer_pages labelled yet")
+        else:
+            print(f"  [{'HIT ' if p['hit'] else 'MISS'}] {p['id']}")
+    print(f"\nrecall@{k} = {res['recall']:.2f}  ({res['answered']} answered questions)\n")
+    return res["recall"]
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -122,8 +148,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--golden", default=DEFAULT_GOLDEN)
     parser.add_argument("--hybrid", action="store_true", help="use hybrid (vector+keyword) retrieval")
     parser.add_argument("--rerank", action="store_true", help="rerank a fanout with the cross-encoder")
+    parser.add_argument("--hyde", action="store_true", help="HyDE: retrieve via a hypothetical answer")
     args = parser.parse_args(argv)
-    run(args.golden, args.k, args.hybrid, args.rerank)
+    run(args.golden, args.k, args.hybrid, args.rerank, args.hyde)
 
 
 if __name__ == "__main__":
