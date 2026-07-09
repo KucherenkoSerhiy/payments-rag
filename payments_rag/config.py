@@ -52,9 +52,12 @@ def require_openai_key() -> str:
 
 
 # --- Vector store ---
+# 127.0.0.1, not "localhost": on Windows localhost can resolve to IPv6 ::1 first,
+# but the Docker port is published on IPv4 — connecting to ::1 then hangs.
 DATABASE_URL: str = os.environ.get(
-    "DATABASE_URL", "postgresql://payments:payments@localhost:5433/payments_rag"
+    "DATABASE_URL", "postgresql://payments:payments@127.0.0.1:5433/payments_rag"
 )
+DB_CONNECT_TIMEOUT: int = 10  # seconds; fail fast instead of hanging on a bad route
 
 # --- API resilience (both the LLM and embedding clients) ---
 # The SDKs already retry 429/5xx with backoff; it's the default 10-minute timeout

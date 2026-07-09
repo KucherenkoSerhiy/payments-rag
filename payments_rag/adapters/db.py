@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def connect() -> psycopg.Connection:
     """Open a connection with the pgvector type adapter registered."""
-    conn = psycopg.connect(config.DATABASE_URL)
+    conn = psycopg.connect(config.DATABASE_URL, connect_timeout=config.DB_CONNECT_TIMEOUT)
     register_vector(conn)
     return conn
 
