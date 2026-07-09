@@ -57,6 +57,11 @@ def require_openai_key() -> str:
 DATABASE_URL: str = os.environ.get(
     "DATABASE_URL", "postgresql://payments:payments@127.0.0.1:5433/payments_rag"
 )
+# Normalize localhost -> 127.0.0.1 even when it comes from .env/env: on Windows
+# localhost resolves to IPv6 ::1 first, but the Docker port is IPv4-only, so each
+# connect hangs ~10s before falling back. 127.0.0.1 skips the detour (loopback is
+# loopback on Linux/macOS too, so this is safe everywhere).
+DATABASE_URL = DATABASE_URL.replace("@localhost:", "@127.0.0.1:")
 DB_CONNECT_TIMEOUT: int = 10  # seconds; fail fast instead of hanging on a bad route
 
 # --- API resilience (both the LLM and embedding clients) ---

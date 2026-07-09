@@ -10,6 +10,7 @@ pages (see docs/ROADMAP.md). Needs the DB up and the Anthropic key set.
 from __future__ import annotations
 
 import sys
+from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 
@@ -36,7 +37,27 @@ def _corpus_summary() -> list[tuple[str, int]]:
         return db.source_counts(conn)
 
 
+@st.cache_data(ttl=30)
+def _health() -> dict:
+    """Ping the DB; cached for 30s so the check fires at most twice a minute."""
+    at = datetime.now().strftime("%H:%M:%S")
+    try:
+        t0 = perf_counter()
+        with db.connect() as conn:
+            conn.execute("SELECT 1")
+        return {"ok": True, "ms": round((perf_counter() - t0) * 1000), "at": at}
+    except Exception as exc:  # DB down / unreachable
+        return {"ok": False, "error": str(exc), "at": at}
+
+
 with st.sidebar:
+    st.subheader("Health")
+    h = _health()
+    if h["ok"]:
+        st.success(f"DB reachable · {h['ms']} ms · checked {h['at']}")
+    else:
+        st.error(f"DB unreachable · checked {h['at']}\n\n{h['error']}")
+
     st.subheader("Indexed corpus")
     try:
         for source, n in _corpus_summary():
@@ -55,8 +76,13 @@ if submitted and question.strip():
     try:
         wall_t0 = perf_counter()
         with st.spinner("Retrieving passages and generating a grounded answer…"):
-            with db.connect() as conn:
+            c0 = perf_counter()
+            conn = db.connect()
+            connect_s = perf_counter() - c0
+            try:
                 result = answer(conn, question, k=k)
+            finally:
+                conn.close()
         wall_s = perf_counter() - wall_t0
     except Exception as exc:  # DB down, missing key, API error
         st.error(f"Couldn't answer that: {exc}")
@@ -64,12 +90,11 @@ if submitted and question.strip():
 
     st.markdown("### Answer")
     st.write(result.answer)
-    # wall_s is the true server-side time; the two stages are sub-parts, and
-    # "other" (connect + anything uninstrumented) is what the old sum hid.
-    other_s = max(0.0, wall_s - result.retrieval_s - result.generation_s)
+    # Split every stage out so nothing hides in a vague bucket.
+    other_s = max(0.0, wall_s - connect_s - result.retrieval_s - result.generation_s)
     st.caption(
-        f"⏱ {wall_s:.1f}s server · retrieval {result.retrieval_s:.1f}s "
-        f"· generation {result.generation_s:.1f}s · connect + overhead {other_s:.1f}s"
+        f"⏱ {wall_s:.1f}s server · connect {connect_s:.1f}s · retrieval {result.retrieval_s:.1f}s "
+        f"· generation {result.generation_s:.1f}s · other {other_s:.1f}s"
     )
 
     st.markdown("### Evidence")
