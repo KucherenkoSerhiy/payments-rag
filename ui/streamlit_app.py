@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from time import perf_counter
 
 import streamlit as st
 
@@ -52,19 +53,23 @@ with st.form("ask"):
 
 if submitted and question.strip():
     try:
+        wall_t0 = perf_counter()
         with st.spinner("Retrieving passages and generating a grounded answer…"):
             with db.connect() as conn:
                 result = answer(conn, question, k=k)
+        wall_s = perf_counter() - wall_t0
     except Exception as exc:  # DB down, missing key, API error
         st.error(f"Couldn't answer that: {exc}")
         st.stop()
 
     st.markdown("### Answer")
     st.write(result.answer)
-    total_s = result.retrieval_s + result.generation_s
+    # wall_s is the true server-side time; the two stages are sub-parts, and
+    # "other" (connect + anything uninstrumented) is what the old sum hid.
+    other_s = max(0.0, wall_s - result.retrieval_s - result.generation_s)
     st.caption(
-        f"⏱ {total_s:.1f}s total · retrieval {result.retrieval_s:.1f}s "
-        f"· generation {result.generation_s:.1f}s"
+        f"⏱ {wall_s:.1f}s server · retrieval {result.retrieval_s:.1f}s "
+        f"· generation {result.generation_s:.1f}s · connect + overhead {other_s:.1f}s"
     )
 
     st.markdown("### Evidence")
