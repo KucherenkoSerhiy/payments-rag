@@ -1,10 +1,10 @@
-"""Minimal Streamlit UI for the retrieval checkpoint.
+"""Streamlit UI — Ask: cited answers over the SEPA rulebooks (the glass box).
 
     uv run streamlit run ui/streamlit_app.py
 
-Retrieval only — type a SEPA question, see the spec passages that come back,
-with source + page + cosine distance. No generated answers yet (that is the
-Week-3 agent layer); this is the query CLI with a box instead of a terminal.
+Type a question, get a grounded answer, and see the exact rulebook passages it was
+built from (source + page). This is the "Ask" view; Evals and Usage are later
+pages (see docs/ROADMAP.md). Needs the DB up and the Anthropic key set.
 """
 
 from __future__ import annotations
@@ -19,13 +19,13 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from payments_rag.adapters import db  # noqa: E402  (import after sys.path bootstrap)
-from payments_rag.retrieval.retriever import retrieve  # noqa: E402
+from payments_rag.orchestrator import answer  # noqa: E402
 
-st.set_page_config(page_title="Payments RAG — retrieval", page_icon="🔎")
-st.title("Payments RAG — retrieval")
+st.set_page_config(page_title="Payments RAG — Ask", page_icon="🔎")
+st.title("Payments RAG")
 st.caption(
-    "SEPA SCT / SCT Inst spec search. Shows the retrieved passages only — "
-    "answer generation is a later milestone. Verify against the cited page."
+    "Ask about the SEPA SCT / SCT Inst rulebooks. Every answer shows the passages "
+    "it was built from — verify against the cited page."
 )
 
 
@@ -44,18 +44,30 @@ with st.sidebar:
         st.warning(f"Corpus unavailable: {exc}")
     k = st.slider("Passages to retrieve", 1, 10, 5)
 
-question = st.text_input(
-    "Ask a question", value="How fast does an SCT Inst payment settle?"
-)
+with st.form("ask"):
+    question = st.text_input(
+        "Ask a question", value="How fast does an SCT Inst payment settle?"
+    )
+    submitted = st.form_submit_button("Ask", type="primary")
 
-if st.button("Search", type="primary") and question.strip():
-    with st.spinner("Embedding question and searching pgvector…"):
-        with db.connect() as conn:
-            results = retrieve(conn, question, k=k)
-    if not results:
-        st.info("No results — is the corpus indexed? Run: `cli index --reset`")
-    for rank, r in enumerate(results, 1):
-        preview = " ".join(r.text.split())
-        st.markdown(f"**#{rank} · {r.source} · p{r.page}** — distance `{r.distance:.4f}`")
-        st.write(preview[:600] + ("…" if len(preview) > 600 else ""))
-        st.divider()
+if submitted and question.strip():
+    try:
+        with st.spinner("Retrieving passages and generating a grounded answer…"):
+            with db.connect() as conn:
+                result = answer(conn, question, k=k)
+    except Exception as exc:  # DB down, missing key, API error
+        st.error(f"Couldn't answer that: {exc}")
+        st.stop()
+
+    st.markdown("### Answer")
+    st.write(result.answer)
+
+    st.markdown("### Evidence")
+    st.caption("The passages this answer is built from — open the page to verify.")
+    if not result.citations:
+        st.info("The model cited no specific passage. Treat the answer with extra caution.")
+    for c in result.citations:
+        passage = " ".join(c.text.split())
+        with st.container(border=True):
+            st.markdown(f"**{c.source} · p{c.page}**")
+            st.write(passage[:700] + ("…" if len(passage) > 700 else ""))

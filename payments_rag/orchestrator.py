@@ -21,6 +21,7 @@ class Citation:
     chunk_id: int
     source: str
     page: int | None
+    text: str  # the passage itself, so the UI can show the evidence, not just a page ref
 
 
 @dataclass
@@ -55,5 +56,7 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
         if chunk is None or cid in seen:
             continue
         seen.add(cid)
-        citations.append(Citation(chunk_id=cid, source=chunk.source, page=chunk.page))
+        citations.append(
+            Citation(chunk_id=cid, source=chunk.source, page=chunk.page, text=chunk.text)
+        )
     return AnswerResult(answer=data["answer"], citations=citations)

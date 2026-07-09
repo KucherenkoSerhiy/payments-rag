@@ -40,4 +40,6 @@ def test_answer_maps_cited_ids_and_ignores_invented_ones(monkeypatch) -> None:
     assert isinstance(result, AnswerResult)
     assert result.answer == "5 seconds."
     # 42 -> a.pdf p26; 999 was never retrieved, so it's dropped
-    assert result.citations == [Citation(chunk_id=42, source="a.pdf", page=26)]
+    assert result.citations == [
+        Citation(chunk_id=42, source="a.pdf", page=26, text="Settlement is 5 seconds.")
+    ]
