@@ -61,6 +61,11 @@ if submitted and question.strip():
 
     st.markdown("### Answer")
     st.write(result.answer)
+    total_s = result.retrieval_s + result.generation_s
+    st.caption(
+        f"⏱ {total_s:.1f}s total · retrieval {result.retrieval_s:.1f}s "
+        f"· generation {result.generation_s:.1f}s"
+    )
 
     st.markdown("### Evidence")
     st.caption("The passages this answer is built from — open the page to verify.")

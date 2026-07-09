@@ -9,6 +9,7 @@ source+page so the answer is verifiable (ADR-0006). The LLM plumbing lives in
 from __future__ import annotations
 
 from dataclasses import dataclass
+from time import perf_counter
 
 import psycopg
 
@@ -28,6 +29,8 @@ class Citation:
 class AnswerResult:
     answer: str
     citations: list[Citation]
+    retrieval_s: float = 0.0   # seconds spent embedding + searching
+    generation_s: float = 0.0  # seconds spent in the LLM call
 
 
 def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
@@ -44,9 +47,14 @@ def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
 
 
 def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResult:
+    t0 = perf_counter()
     chunks = retrieve(conn, question, k=k)
+    retrieval_s = perf_counter() - t0
+
+    t1 = perf_counter()
     prompt = build_prompt(question, chunks)
     data = llm.complete_json(prompt)
+    generation_s = perf_counter() - t1
 
     by_id = {c.id: c for c in chunks}
     citations: list[Citation] = []
@@ -59,4 +67,9 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
         citations.append(
             Citation(chunk_id=cid, source=chunk.source, page=chunk.page, text=chunk.text)
         )
-    return AnswerResult(answer=data["answer"], citations=citations)
+    return AnswerResult(
+        answer=data["answer"],
+        citations=citations,
+        retrieval_s=retrieval_s,
+        generation_s=generation_s,
+    )
