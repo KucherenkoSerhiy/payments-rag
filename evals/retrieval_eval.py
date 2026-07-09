@@ -78,10 +78,22 @@ def _expected_pairs(entry: dict) -> set[tuple[str, int]]:
     return pairs
 
 
-def run(golden_path: str | Path = DEFAULT_GOLDEN, k: int = 5, hybrid: bool = False) -> float:
+def run(
+    golden_path: str | Path = DEFAULT_GOLDEN,
+    k: int = 5,
+    hybrid: bool = False,
+    rerank: bool = False,
+) -> float:
     entries = _load_golden(golden_path)
-    retriever = retrieve_hybrid if hybrid else retrieve
-    print(f"\nRetrieval eval @k={k} [{'hybrid' if hybrid else 'vector'}]  ({len(entries)} questions)\n")
+    if rerank:
+        from payments_rag.retrieval.rerank import rerank_retrieve
+
+        retriever, mode = rerank_retrieve, "rerank"
+    elif hybrid:
+        retriever, mode = retrieve_hybrid, "hybrid"
+    else:
+        retriever, mode = retrieve, "vector"
+    print(f"\nRetrieval eval @k={k} [{mode}]  ({len(entries)} questions)\n")
 
     hit_flags: list[bool] = []
     with db.connect() as conn:
@@ -109,8 +121,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("-k", type=int, default=5, help="top-k to score against")
     parser.add_argument("--golden", default=DEFAULT_GOLDEN)
     parser.add_argument("--hybrid", action="store_true", help="use hybrid (vector+keyword) retrieval")
+    parser.add_argument("--rerank", action="store_true", help="rerank a fanout with the cross-encoder")
     args = parser.parse_args(argv)
-    run(args.golden, args.k, args.hybrid)
+    run(args.golden, args.k, args.hybrid, args.rerank)
 
 
 if __name__ == "__main__":
