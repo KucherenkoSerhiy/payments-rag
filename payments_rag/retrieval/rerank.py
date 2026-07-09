@@ -11,6 +11,10 @@ Bi-encoder vs cross-encoder: the bi-encoder (embedding.py) embeds question and
 passage separately — fast, whole-corpus, but never sees them together; the
 cross-encoder (adapters/reranker.py) reads the pair together for one score —
 sharper, but one call per pair, so it runs only over the fanout.
+
+DISCLAIMER: eval-only. Our cross-encoder is an LLM call, so a fanout is a
+sequential burst of calls (~1 min/query) — too slow for the interactive path. A
+production reranker would be a local, batched cross-encoder. See ADR-0016.
 """
 
 from __future__ import annotations

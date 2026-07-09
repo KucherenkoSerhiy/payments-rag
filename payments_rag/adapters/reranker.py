@@ -7,9 +7,12 @@ and asks for a single relevance score — sharper, but one API call per
 (question, passage) pair, so it only ever runs over a small fanout of candidates.
 
 We instantiate the cross-encoder as an LLM call rather than a local model
-(sentence-transformers/BGE) to avoid pulling in a heavy ML stack — an ADR will
-record that trade-off once we've measured it. Relevance scoring isn't
-self-marking, so reusing the producer model (Haiku) is fine here.
+(sentence-transformers / BGE), to avoid a heavy ML stack. The cost of that choice
+is LATENCY: one sequential API call per candidate makes a full fanout take ~1
+minute per query. So this is EVAL-ONLY (retrieval_eval --rerank) and deliberately
+NOT in the interactive answer path. A production reranker would be a local
+cross-encoder that scores all candidates in one batched pass in tens of ms — see
+ADR-0016. Relevance scoring isn't self-marking, so reusing Haiku is fine here.
 """
 
 from __future__ import annotations
