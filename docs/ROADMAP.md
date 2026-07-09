@@ -66,8 +66,9 @@ is M7 (open-source polish).
       covered; deeper index internals **partial**.
 
 **Frontier — live learning edges** (each documented problem-first, with a diagram):
-- [ ] **Reranking — cross-encoder** (next hands-on; targets the measured recall
-      ceiling — bi-encoder vs cross-encoder)
+- [x] **Reranking — cross-encoder** — built (LLM-as-reranker), measured
+      recall@5 0.60→0.70 (rescued `sct-inst-currency`, exactly the @20 ceiling);
+      eval-only, not in the product path (latency). ADR-0016. Hand-written.
 - [ ] Breaking the retrieval ceiling — query expansion, HyDE, multi-query, late
       interaction (ColBERT)
 - [ ] Deeper answer eval — faithfulness / groundedness vs answer-correctness; RAGAS
@@ -103,6 +104,14 @@ is M7 (open-source polish).
 ---
 
 ## Status log
+- **2026-07-09 (Reranking, Track B)** — Built a cross-encoder reranker as a
+  learning exercise (LLM-as-reranker: fanout → rescore each pair → top-k).
+  **recall@5 = 0.70** (from vector 0.60) — exactly the vector recall@20 ceiling,
+  so it promoted every *fetchable* relevant page into the top-5. Rescued
+  `sct-inst-currency` (the M4 answer-eval 0). The eval ran ~10 min (200 sequential
+  Haiku calls) → kept eval-only, out of the interactive path on latency grounds; a
+  local cross-encoder would be the product answer. ADR-0016. `order_by_relevance` +
+  `rerank_retrieve` hand-written (5th hands-on piece) + fast seam-stubbed tests.
 - **2026-07-06 (M4 done)** — Answer-quality eval: GPT-4 judges Claude's answers
   against a 10-Q reference set (cross-model, ADR-0007). **mean 85.5, pass-rate
   90%** (9/10 ≥70). The single 0 (currency) is a *retrieval* miss — the euro page
