@@ -23,6 +23,9 @@ def log_query(
     retrieval_s: float,
     generation_s: float,
     n_citations: int,
+    cost_usd: float = 0.0,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
 ) -> None:
     """Append one query event. Best-effort — never let logging break a request."""
     row = {
@@ -34,6 +37,9 @@ def log_query(
         "retrieval_s": round(retrieval_s, 2),
         "generation_s": round(generation_s, 2),
         "n_citations": n_citations,
+        "cost_usd": round(cost_usd, 6),
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
     }
     _LOG.parent.mkdir(parents=True, exist_ok=True)
     with _LOG.open("a", encoding="utf-8") as f:

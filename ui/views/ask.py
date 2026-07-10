@@ -66,6 +66,9 @@ if submitted and question.strip():
         retrieval_s=result.retrieval_s,
         generation_s=result.generation_s,
         n_citations=len(result.citations),
+        cost_usd=result.cost_usd,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
     )
 
     st.markdown("### Answer")
@@ -73,7 +76,7 @@ if submitted and question.strip():
     other_s = max(0.0, wall_s - connect_s - result.retrieval_s - result.generation_s)
     st.caption(
         f"⏱ {wall_s:.1f}s server · connect {connect_s:.1f}s · retrieval {result.retrieval_s:.1f}s "
-        f"· generation {result.generation_s:.1f}s · other {other_s:.1f}s"
+        f"· generation {result.generation_s:.1f}s · other {other_s:.1f}s · 💵 ${result.cost_usd:.4f}"
     )
 
     st.markdown("### Evidence")

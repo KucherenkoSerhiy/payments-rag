@@ -31,6 +31,9 @@ def _require(name: str) -> str:
 # Haiku 4.5 — cheapest current Claude ($1/$5 per 1M). Note: the eval judge must
 # stay a different model (GPT-4) to preserve cross-model judging (scoping).
 LLM_MODEL: str = os.environ.get("LLM_MODEL", "claude-haiku-4-5")
+# Haiku 4.5 pricing (USD per 1M tokens) — used to estimate per-query cost.
+LLM_INPUT_COST_PER_MTOK: float = 1.0
+LLM_OUTPUT_COST_PER_MTOK: float = 5.0
 
 # Eval judge — a DIFFERENT model from LLM_MODEL, to keep cross-model judging
 # (the producer must not grade its own homework — ADR-0007).

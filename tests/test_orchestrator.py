@@ -32,7 +32,10 @@ def test_answer_maps_cited_ids_and_ignores_invented_ones(monkeypatch) -> None:
     monkeypatch.setattr("payments_rag.orchestrator.build_prompt", lambda q, chunks: "PROMPT")
     monkeypatch.setattr(
         "payments_rag.adapters.llm.complete_json",
-        lambda prompt: {"answer": "5 seconds.", "citations": [42, 999]},
+        lambda prompt: (
+            {"answer": "5 seconds.", "citations": [42, 999]},
+            {"input_tokens": 120, "output_tokens": 30},
+        ),
     )
 
     result = answer(None, "How fast?", k=2)

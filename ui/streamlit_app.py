@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # app root
 
 from payments_rag.adapters import db  # noqa: E402
 
-st.set_page_config(page_title="Payments RAG", page_icon="🔎")
+st.set_page_config(page_title="Payments RAG", page_icon="🔎", initial_sidebar_state="expanded")
 
 
 @st.cache_data(ttl=30)
@@ -52,4 +52,7 @@ pages = [
     st.Page("views/evals.py", title="Evals", icon="🧪"),
     st.Page("views/usage.py", title="Usage", icon="📈"),
 ]
+# Nav lives in the sidebar, which we force open (initial_sidebar_state) so the
+# page switcher AND the Health panel are both visible on load. (position="top" is
+# accepted by this Streamlit version but doesn't render a top bar.)
 st.navigation(pages).run()

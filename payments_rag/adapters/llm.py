@@ -40,11 +40,11 @@ def _get_client() -> Anthropic:
     return _client
 
 
-def complete_json(prompt: str) -> dict:
-    """Call the LLM and return its {answer, citations} as a dict.
+def complete_json(prompt: str) -> tuple[dict, dict]:
+    """Call the LLM; return (parsed {answer, citations}, token usage).
 
-    Uses structured outputs, so the reply is always valid JSON matching
-    ANSWER_SCHEMA — no parsing surprises.
+    Structured outputs guarantee valid JSON matching ANSWER_SCHEMA. `usage` is
+    {input_tokens, output_tokens}, used to estimate the query's cost.
     """
     resp = _get_client().messages.create(
         model=config.LLM_MODEL,
@@ -53,4 +53,15 @@ def complete_json(prompt: str) -> dict:
         output_config={"format": {"type": "json_schema", "schema": ANSWER_SCHEMA}},
     )
     text = next(block.text for block in resp.content if block.type == "text")
-    return json.loads(text)
+    usage = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens}
+    return json.loads(text), usage
+
+
+def draft(prompt: str, *, max_tokens: int = 256) -> str:
+    """Plain-text completion (no schema). Used for HyDE's hypothetical answers."""
+    resp = _get_client().messages.create(
+        model=config.LLM_MODEL,
+        max_tokens=max_tokens,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return next(block.text for block in resp.content if block.type == "text")

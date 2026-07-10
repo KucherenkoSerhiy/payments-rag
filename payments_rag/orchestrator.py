@@ -13,6 +13,7 @@ from time import perf_counter
 
 import psycopg
 
+from payments_rag import config
 from payments_rag.adapters import llm
 from payments_rag.retrieval.retriever import RetrievedChunk, retrieve
 
@@ -31,6 +32,9 @@ class AnswerResult:
     citations: list[Citation]
     retrieval_s: float = 0.0   # seconds spent embedding + searching
     generation_s: float = 0.0  # seconds spent in the LLM call
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0      # estimated LLM cost for this answer
 
 
 def build_prompt(question: str, chunks: list[RetrievedChunk]) -> str:
@@ -53,7 +57,7 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
 
     t1 = perf_counter()
     prompt = build_prompt(question, chunks)
-    data = llm.complete_json(prompt)
+    data, usage = llm.complete_json(prompt)
     generation_s = perf_counter() - t1
 
     by_id = {c.id: c for c in chunks}
@@ -67,9 +71,16 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
         citations.append(
             Citation(chunk_id=cid, source=chunk.source, page=chunk.page, text=chunk.text)
         )
+    cost_usd = (
+        usage["input_tokens"] * config.LLM_INPUT_COST_PER_MTOK
+        + usage["output_tokens"] * config.LLM_OUTPUT_COST_PER_MTOK
+    ) / 1_000_000
     return AnswerResult(
         answer=data["answer"],
         citations=citations,
         retrieval_s=retrieval_s,
         generation_s=generation_s,
+        input_tokens=usage["input_tokens"],
+        output_tokens=usage["output_tokens"],
+        cost_usd=cost_usd,
     )
