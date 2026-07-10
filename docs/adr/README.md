@@ -20,10 +20,11 @@ relitigate a settled call.
 | [0007](0007-cross-model-llm-judge.md) | Eval: cross-model LLM-as-judge | Accepted (not yet built) |
 | [0008](0008-per-page-chunking.md) | Chunk per page (citation accuracy) | Accepted |
 | [0009](0009-boilerplate-and-sentence-chunking.md) | Boilerplate strip + sentence-aware chunking | Accepted (measured neutral on retrieval) |
-| [0010](0010-streamlit-ui.md) | UI: minimal Streamlit | Accepted |
+| [0010](0010-streamlit-ui.md) | UI: minimal Streamlit | Accepted (superseded by 0017) |
 | [0011](0011-repo-layout.md) | Code in nested `app/`, separate from docs | Accepted |
 | [0012](0012-golden-set-in-repo.md) | Golden eval set: YAML in repo | Accepted (not yet built) |
 | [0013](0013-deploy-docker-local.md) | Deploy: Docker, local only | Accepted |
 | [0014](0014-improve-retrieval-rerank-hybrid.md) | Improve retrieval: rerank / hybrid | Accepted (vector default; hybrid optional) |
 | [0015](0015-package-by-concern-llm-adapter.md) | Package by concern; extract LLM adapter | Accepted |
 | [0016](0016-reranker-llm-cross-encoder-eval-only.md) | Reranking: LLM-as-cross-encoder, eval-only (Track B) | Accepted (recall 0.60→0.70; not in product path) |
+| [0017](0017-frontend-angular-fastapi.md) | Frontend: Angular SPA + FastAPI backend | Accepted (supersedes 0010) |

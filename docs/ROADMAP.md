@@ -104,6 +104,13 @@ is M7 (open-source polish).
 ---
 
 ## Status log
+- **2026-07-11 (UI pivot: Angular + FastAPI)** — Streamlit did its job (three-view
+  glass-box app, measured + observable) but hit its design ceiling. Decided to
+  rebuild the frontend as an Angular SPA over a FastAPI backend (ADR-0017,
+  supersedes ADR-0010); the API layer is also what M8 needs. Captured the current
+  Streamlit state (`docs/writeups/ui-current-state-streamlit.md`) + role-labeled
+  nav and a full multi-dependency Health view in the mockups. Backend migration
+  starts now (FastAPI: ask / evals-with-duration / usage / health).
 - **2026-07-09 (UI: three-view app + a real latency bug)** — Streamlit multipage
   app (`st.navigation`): **Ask** (cited answers + evidence + per-stage timing),
   **Evals** (live retrieval recall@k + last saved answer-eval), **Usage**
