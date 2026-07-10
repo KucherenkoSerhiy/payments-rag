@@ -1,0 +1,23 @@
+<h1 class="ptitle">Usage</h1>
+<p class="psub">What's actually being asked — for admins.</p>
+
+@if (data(); as d) {
+  <div class="metrics c4">
+    <div class="metric"><div class="l">questions</div><div class="n">{{ d.count }}</div></div>
+    <div class="metric"><div class="l">avg latency</div><div class="n">{{ d.avg_latency_s }}s</div></div>
+    <div class="metric"><div class="l">total cost</div><div class="n">${{ d.total_cost_usd | number:'1.4-4' }}</div></div>
+    <div class="metric"><div class="l">avg / query</div><div class="n">${{ (d.count ? d.total_cost_usd / d.count : 0) | number:'1.4-4' }}</div></div>
+  </div>
+
+  <div class="sec">Recent questions</div>
+  @for (r of d.recent; track $index) {
+    <div class="row">
+      <span class="time">{{ r.at?.slice(11, 19) }}</span>
+      <span class="lat">{{ r.wall_s }}s</span>
+      <span class="cost">${{ r.cost_usd | number:'1.4-4' }}</span>
+      <span class="mode">{{ r.mode }}</span>
+      <span class="qt">{{ r.question }}</span>
+    </div>
+  }
+  @if (d.count === 0) { <p class="cap">No queries logged yet. Ask something on the Ask page.</p> }
+}

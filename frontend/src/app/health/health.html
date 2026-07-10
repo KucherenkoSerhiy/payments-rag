@@ -1,0 +1,25 @@
+<h1 class="ptitle">Health</h1>
+<p class="psub">Every dependency, checkable — for ops.</p>
+
+<div class="hbar">
+  <button class="checkall" (click)="checkAll()"><i class="ti ti-refresh"></i> Check all</button>
+  <span class="hnote">Auto-checks every 10 min@if (lastFull()) { · last full run {{ lastFull() }} }</span>
+</div>
+
+@for (name of order; track name) {
+  <div class="dep">
+    <i class="ti {{ icons[name] }}"></i>
+    <div class="dmain"><b>{{ labels[name] }}</b><em>{{ kinds[name] }}</em></div>
+    <div class="dstat">
+      @if (isChecking(name)) {
+        <span class="st warn"><span class="sd"></span>checking…</span>
+      } @else if (get(name); as c) {
+        <span class="st" [class.ok]="c.ok" [class.down]="!c.ok"><span class="sd"></span>{{ c.ok ? 'reachable' : 'down' }}</span>
+        <span class="sub">{{ c.latency_ms }} ms · {{ c.at.slice(11, 16) }}</span>
+      } @else {
+        <span class="st"><span class="sd"></span>—</span>
+      }
+    </div>
+    <button class="chk" (click)="checkOne(name)">Check</button>
+  </div>
+}

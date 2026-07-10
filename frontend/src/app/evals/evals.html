@@ -1,0 +1,40 @@
+<h1 class="ptitle">Evals</h1>
+<p class="psub">Quality against the golden set — for developers.</p>
+
+<div class="sec">Retrieval — recall&#64;k</div>
+<div class="controls">
+  <div class="ctrl">
+    <label>Mode</label>
+    <select [(ngModel)]="mode"><option value="vector">vector</option><option value="hybrid">hybrid</option></select>
+  </div>
+  <div class="ctrl"><label>k</label><input type="number" [(ngModel)]="k" min="1" max="10" /></div>
+  <button class="run" (click)="run()" [disabled]="running()">Run retrieval eval</button>
+</div>
+
+@if (running()) { <p class="loading">Embedding the golden questions and searching…</p> }
+@if (retr(); as r) {
+  <div class="metrics c1"><div class="metric"><div class="l">recall&#64;{{ r.k }} · {{ r.mode }} · {{ r.answered }} labelled</div><div class="n">{{ r.recall }}</div></div></div>
+  <p class="cap">ran in {{ r.duration_s }}s</p>
+  @for (p of r.per_question; track p.id) {
+    <div class="q"><span class="dot" [class.ok]="p.hit === true" [class.bad]="p.hit === false"></span> {{ p.id }}</div>
+  }
+}
+
+<hr class="hr" />
+
+<div class="sec">Answers — quality (last run)</div>
+@if (answer(); as a) {
+  @if (a.empty) {
+    <p class="cap">No answer-eval run saved yet. Run <code>python -m evals.answer_eval</code> to populate this.</p>
+  } @else {
+    <div class="metrics c3">
+      <div class="metric"><div class="l">mean score</div><div class="n">{{ a.mean }}</div></div>
+      <div class="metric"><div class="l">pass rate ≥{{ a.threshold }}</div><div class="n">{{ (a.pass_rate || 0) * 100 | number:'1.0-0' }}%</div></div>
+      <div class="metric"><div class="l">questions</div><div class="n">{{ a.per_question?.length }}</div></div>
+    </div>
+    <p class="cap">last run {{ a.at }} · ran in {{ a.duration_s }}s</p>
+    @for (p of a.per_question; track p.id) {
+      <div class="crit"><span class="score" [class.z]="p.score === 0">{{ p.score }}</span><span>{{ p.id }} — {{ p.critique }}</span></div>
+    }
+  }
+}

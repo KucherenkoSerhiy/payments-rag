@@ -1,0 +1,12 @@
+<div class="nav">
+  <span class="brand"><i class="ti ti-file-search"></i> Payments RAG</span>
+  <div class="tabs">
+    <a class="tab" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><b>Ask</b><em>users</em></a>
+    <a class="tab" routerLink="/evals" routerLinkActive="active"><b>Evals</b><em>quality</em></a>
+    <a class="tab" routerLink="/usage" routerLinkActive="active"><b>Usage</b><em>admin</em></a>
+    <a class="tab" routerLink="/health" routerLinkActive="active"><b>Health</b><em>ops</em></a>
+  </div>
+</div>
+<main class="container">
+  <router-outlet></router-outlet>
+</main>

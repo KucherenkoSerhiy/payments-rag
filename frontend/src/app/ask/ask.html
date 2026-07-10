@@ -1,0 +1,41 @@
+<h1 class="ptitle">Ask the SEPA rulebooks</h1>
+<p class="psub">Plain-English questions — answered with the exact page cited.</p>
+
+<div class="bar">
+  <i class="ti ti-search"></i>
+  <input [(ngModel)]="q" (keyup.enter)="ask()" placeholder="Ask a question" aria-label="Question" />
+  <button class="askbtn" (click)="ask()" [disabled]="loading()">Ask</button>
+</div>
+<div class="chips">
+  @for (e of examples; track e) { <span class="chip" (click)="pick(e)">{{ e }}</span> }
+</div>
+
+@if (loading()) { <p class="loading">Retrieving passages and generating a grounded answer…</p> }
+@if (error()) { <div class="err">{{ error() }}</div> }
+
+@if (result(); as r) {
+  <div class="card">
+    <div class="ahead">
+      <span class="lbl">ANSWER</span>
+      <div class="meta">
+        <span class="badge"><i class="ti ti-clock"></i> {{ r.timing.retrieval_s + r.timing.generation_s | number:'1.1-1' }}s</span>
+        <span class="badge"><i class="ti ti-coin"></i> ${{ r.cost_usd | number:'1.4-4' }}</span>
+        <span class="badge">vector · k5</span>
+      </div>
+    </div>
+    <p class="atext">{{ r.answer }}</p>
+  </div>
+
+  <div class="ev">
+    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages — verify against the page</span></div>
+    @for (c of r.citations; track c.chunk_id; let i = $index) {
+      <div class="src">
+        <div class="srch"><span class="srcn">{{ i + 1 }}</span> {{ c.source }} · p{{ c.page }}</div>
+        <p class="srct">{{ c.text }}</p>
+      </div>
+    }
+    @if (r.citations.length === 0) {
+      <div class="err">The model cited no specific passage — treat with caution.</div>
+    }
+  </div>
+}

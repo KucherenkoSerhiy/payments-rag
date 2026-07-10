@@ -104,6 +104,14 @@ is M7 (open-source polish).
 ---
 
 ## Status log
+- **2026-07-11 (Angular frontend live — ADR-0017 fully implemented)** — Built the
+  Angular 20 SPA (`frontend/`) over the FastAPI backend: top nav with role-labeled
+  tabs + all four views — **Ask** (cited answer + timing + cost + evidence),
+  **Evals** (live recall@k with duration + saved answer-eval), **Usage** (metrics +
+  recent), **Health** (5-dependency live checks + Check-all + 10-min auto-check).
+  Verified all four in-browser (Playwright) end-to-end against the real Python core
+  (Ask 8.1s/$0.0031 with 3 evidence cards; recall@5=0.60 in 3.23s; health all-green).
+  Icons via a locally-bundled Tabler webfont. Streamlit superseded (ADR-0017).
 - **2026-07-11 (UI pivot: Angular + FastAPI)** — Streamlit did its job (three-view
   glass-box app, measured + observable) but hit its design ceiling. Decided to
   rebuild the frontend as an Angular SPA over a FastAPI backend (ADR-0017,
