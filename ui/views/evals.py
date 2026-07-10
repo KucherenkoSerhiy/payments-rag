@@ -19,7 +19,7 @@ st.caption("Quality against the golden set — for the developer, not the end us
 
 st.subheader("Retrieval — recall@k")
 c1, c2 = st.columns(2)
-mode = c1.selectbox("Mode", ["vector", "hybrid"], help="rerank / hyde are CLI-only (slow)")
+mode = c1.selectbox("Mode", ["vector", "hybrid"], help="rerank is CLI-only (slow)")
 k = c2.slider("k", 1, 10, 5)
 
 if st.button("Run retrieval eval", type="primary"):

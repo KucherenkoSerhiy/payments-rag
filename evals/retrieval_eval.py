@@ -78,15 +78,11 @@ def _expected_pairs(entry: dict) -> set[tuple[str, int]]:
     return pairs
 
 
-def _select_retriever(hybrid: bool, rerank: bool, hyde: bool):
+def _select_retriever(hybrid: bool, rerank: bool):
     if rerank:
         from payments_rag.retrieval.rerank import rerank_retrieve
 
         return rerank_retrieve, "rerank"
-    if hyde:
-        from payments_rag.retrieval.hyde import retrieve_hyde
-
-        return retrieve_hyde, "hyde"
     if hybrid:
         return retrieve_hybrid, "hybrid"
     return retrieve, "vector"
@@ -98,11 +94,10 @@ def evaluate(
     *,
     hybrid: bool = False,
     rerank: bool = False,
-    hyde: bool = False,
 ) -> dict:
     """Score the golden set; return recall + per-question hits (for the UI)."""
     entries = _load_golden(golden_path)
-    retriever, mode = _select_retriever(hybrid, rerank, hyde)
+    retriever, mode = _select_retriever(hybrid, rerank)
     per_question: list[dict] = []
     with db.connect() as conn:
         for entry in entries:
@@ -129,9 +124,8 @@ def run(
     k: int = 5,
     hybrid: bool = False,
     rerank: bool = False,
-    hyde: bool = False,
 ) -> float:
-    res = evaluate(golden_path, k, hybrid=hybrid, rerank=rerank, hyde=hyde)
+    res = evaluate(golden_path, k, hybrid=hybrid, rerank=rerank)
     print(f"\nRetrieval eval @k={k} [{res['mode']}]  ({res['total']} questions)\n")
     for p in res["per_question"]:
         if p["hit"] is None:
@@ -148,9 +142,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--golden", default=DEFAULT_GOLDEN)
     parser.add_argument("--hybrid", action="store_true", help="use hybrid (vector+keyword) retrieval")
     parser.add_argument("--rerank", action="store_true", help="rerank a fanout with the cross-encoder")
-    parser.add_argument("--hyde", action="store_true", help="HyDE: retrieve via a hypothetical answer")
     args = parser.parse_args(argv)
-    run(args.golden, args.k, args.hybrid, args.rerank, args.hyde)
+    run(args.golden, args.k, args.hybrid, args.rerank)
 
 
 if __name__ == "__main__":
