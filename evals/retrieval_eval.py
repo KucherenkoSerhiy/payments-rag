@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from time import perf_counter
 
 import yaml
 
@@ -98,6 +99,7 @@ def evaluate(
     """Score the golden set; return recall + per-question hits (for the UI)."""
     entries = _load_golden(golden_path)
     retriever, mode = _select_retriever(hybrid, rerank)
+    t0 = perf_counter()
     per_question: list[dict] = []
     with db.connect() as conn:
         for entry in entries:
@@ -115,6 +117,7 @@ def evaluate(
         "recall": recall_at_k(hits),
         "answered": len(hits),
         "total": len(per_question),
+        "duration_s": round(perf_counter() - t0, 2),
         "per_question": per_question,
     }
 

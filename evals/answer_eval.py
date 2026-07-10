@@ -16,6 +16,7 @@ import argparse
 import json
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 
 import yaml
 
@@ -50,7 +51,7 @@ def _load_golden(path: str | Path) -> list[dict]:
     return yaml.safe_load(Path(path).read_text(encoding="utf-8")) or []
 
 
-def _save_results(mean: float, pass_rate: float, details: list[dict]) -> None:
+def _save_results(mean: float, pass_rate: float, details: list[dict], duration_s: float) -> None:
     """Persist the run so the Evals UI can show it without re-paying for a run."""
     out = Path(__file__).resolve().parent.parent / "data" / "last_answer_eval.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -61,6 +62,7 @@ def _save_results(mean: float, pass_rate: float, details: list[dict]) -> None:
                 "mean": round(mean, 1),
                 "pass_rate": round(pass_rate, 3),
                 "threshold": PASS_THRESHOLD,
+                "duration_s": duration_s,
                 "per_question": details,
             },
             indent=2,
@@ -75,6 +77,7 @@ def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
 
     scores: list[int] = []
     details: list[dict] = []
+    t0 = perf_counter()
     with db.connect() as conn:
         for entry in entries:
             result = answer(conn, entry["question"])
@@ -83,12 +86,13 @@ def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
             details.append({"id": entry["id"], "score": score, "critique": critique})
             print(f"  [{score:3d}]  {entry['id']}  — {critique}")
 
+    duration_s = round(perf_counter() - t0, 2)
     mean, pass_rate = summarize(scores)
     print(
         f"\nmean = {mean:.1f}   pass rate (>= {PASS_THRESHOLD}) = {pass_rate:.0%}   "
-        f"({len(scores)} questions)\n"
+        f"({len(scores)} questions in {duration_s}s)\n"
     )
-    _save_results(mean, pass_rate, details)
+    _save_results(mean, pass_rate, details, duration_s)
     return mean, pass_rate
 
 

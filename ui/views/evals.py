@@ -30,6 +30,7 @@ if st.button("Run retrieval eval", type="primary"):
         f"{res['recall']:.2f}",
         help=f"{res['answered']} labelled questions",
     )
+    st.caption(f"ran in {res['duration_s']}s")
     for p in res["per_question"]:
         if p["hit"] is None:
             st.write(f"⚪ {p['id']} — not labelled")
@@ -45,6 +46,7 @@ if _ANSWER_EVAL.exists():
     a.metric("mean score", data["mean"])
     b.metric(f"pass rate (≥{data['threshold']})", f"{round(data['pass_rate'] * 100)}%")
     c.metric("last run", data["at"].replace("T", " "))
+    st.caption(f"ran in {data.get('duration_s', '?')}s")
     for p in data["per_question"]:
         st.write(f"**{p['score']:3d}** · {p['id']} — {p['critique']}")
 else:
