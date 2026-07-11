@@ -81,6 +81,31 @@ is M7 (open-source polish).
 
 ---
 
+## Public-access & multi-user concerns (evaluate at M7/M8)
+
+Once deployed it's **one app for everyone** — no accounts in scope, but be explicit
+about each concern, including the ones we deliberately skip. Writeup:
+`docs/writeups/going-public-shared-corpus-rag.md`.
+
+- **Data isolation / tenancy — N/A (deliberately).** The corpus is the shared,
+  public SEPA rulebooks; no per-user documents. The hard part of multi-tenant RAG
+  doesn't apply. Revisit only if per-user upload is ever added.
+- **Access control — near-term (M7/M8).** Ask is public; Evals / Usage / Health are
+  dev/admin/ops. Gate those routes (shared admin token / basic-auth). Today
+  everything is open.
+- **Data privacy — near-term (M7/M8).** The query log (Usage tab) stores every
+  question in plaintext and exposes them — a leak once public. Also: questions go
+  to third-party LLM APIs. Mitigations: gate/anonymize the log, set retention, add
+  a short privacy note, avoid logging obvious PII.
+- **Abuse & cost — near-term (M7/M8).** Public + paid-per-call = anyone can run up
+  the bill. Per-IP rate limiting + a global daily budget cap + input-length caps
+  (revisits ADR-0013's abuse guard).
+- **CORS / secrets / TLS — deploy hygiene (M8).** `allow_origins=["*"]` is dev-only
+  — tighten to the frontend origin. Managed secrets, HTTPS.
+- **Accounts / identity — deferred (out of scope).** If personalization or quotas
+  are ever wanted, the FastAPI layer is the seam: auth middleware → per-request
+  user → per-user history (off localStorage) → role-gated routes. Core unchanged.
+
 ## Full backlog (grouped — nothing dropped)
 
 - **Next:** M2 retrieval eval (needs your question→page labels).
