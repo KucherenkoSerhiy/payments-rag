@@ -13,7 +13,7 @@ dependencies = [
     "pgvector>=0.3",        # psycopg adapter for the vector type
     "pypdf>=5.1",           # read SEPA spec PDFs
     "python-dotenv>=1.0",   # load .env
-    "streamlit>=1.40",      # minimal query UI (scoping-approved UI option)
+    # minimal query UI (scoping-approved UI option)
     "pyyaml>=6.0",          # golden-set eval files (ADR-0012)
     "fastapi>=0.139.0",
     "uvicorn[standard]>=0.49.0",
