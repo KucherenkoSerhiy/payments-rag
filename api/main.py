@@ -13,6 +13,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from evals import retrieval_eval
@@ -21,6 +22,7 @@ from payments_rag.adapters import db
 from payments_rag.orchestrator import answer
 
 _DATA = Path(__file__).resolve().parent.parent / "data"
+_CORPUS = Path(__file__).resolve().parent.parent / "corpus" / "raw"
 
 app = FastAPI(title="Payments RAG API", version="0.1.0")
 # Dev-open CORS so the Angular dev server can call the API; tighten for deploy.
@@ -98,3 +100,12 @@ def usage(limit: int = 50) -> dict:
         "total_cost_usd": round(sum(costs), 4),
         "recent": rows[:25],
     }
+
+
+@app.get("/source/{filename}")
+def source(filename: str):
+    """Serve a corpus PDF so the UI can deep-link to a page (#page=N)."""
+    path = _CORPUS / Path(filename).name  # .name strips any path-traversal
+    if not path.exists() or path.suffix.lower() != ".pdf":
+        raise HTTPException(404, f"not found: {filename}")
+    return FileResponse(path, media_type="application/pdf")

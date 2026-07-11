@@ -27,15 +27,26 @@
   </div>
 
   <div class="ev">
-    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages — verify against the page</span></div>
+    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages — click to open the page</span></div>
     @for (c of r.citations; track c.chunk_id; let i = $index) {
       <div class="src">
-        <div class="srch"><span class="srcn">{{ i + 1 }}</span> {{ c.source }} · p{{ c.page }}</div>
+        <a class="srch" [href]="pdfUrl(c)" target="_blank" rel="noopener">
+          <span class="srcn">{{ i + 1 }}</span> {{ c.source }} · p{{ c.page }} <i class="ti ti-external-link ext"></i>
+        </a>
         <p class="srct">{{ c.text }}</p>
       </div>
     }
     @if (r.citations.length === 0) {
       <div class="err">The model cited no specific passage — treat with caution.</div>
+    }
+  </div>
+}
+
+@if (history().length) {
+  <div class="hist">
+    <div class="histhead"><span class="sec" style="margin:0">History</span><button class="linkbtn" (click)="clearHistory()">clear</button></div>
+    @for (h of history(); track h.q) {
+      <div class="histrow" (click)="show(h)"><i class="ti ti-history"></i> {{ h.q }}</div>
     }
   </div>
 }

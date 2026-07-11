@@ -31,4 +31,7 @@ export class Api {
   retrievalEval(mode: string, k: number) { return this.http.post<RetrievalEval>(`${BASE}/evals/retrieval?mode=${mode}&k=${k}`, {}); }
   answerEval() { return this.http.get<AnswerEval>(`${BASE}/evals/answer`); }
   usage() { return this.http.get<UsageStats>(`${BASE}/usage`); }
+  pdfUrl(source: string, page: number | null) {
+    return `${BASE}/source/${encodeURIComponent(source)}` + (page ? `#page=${page}` : '');
+  }
 }
