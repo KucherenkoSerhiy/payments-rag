@@ -1,91 +1,110 @@
-# Payments RAG Agent
+# Payments RAG
 
-A retrieval-augmented agent for payments engineers. Ask a natural-language
-question about **SEPA SCT, SCT Inst, or pacs.\* (ISO 20022)** messages; get a
-short answer with clickable citations to the spec passages that support it.
+A retrieval-augmented Q&A tool for the **SEPA payment rulebooks** (SCT and
+SCT Inst). Ask a question in plain English; get a grounded answer with the exact
+rulebook page cited — and one click opens that page in the PDF.
 
-> The LLM can be wrong. Always navigate to the cited source before trusting an
-> answer. See `../scoping.md` for the full contract, goals, and non-goals.
->
-> **Current retrieval quality: recall@5 = 0.60** on a 10-question verified golden
-> set (`evals/`) — roughly 3 in 5 questions get a relevant page into the top 5.
-> Treat answers as leads to verify, not authority. (Hybrid keyword+vector search
-> was evaluated and a reranking ceiling analysed — neither beat vector-only on
-> this small corpus; see ADR-0014.) Reproduce with `python -m evals.retrieval_eval`.
+![Ask view](docs/screenshots/ask.png)
 
-This folder is the actual code repo. The planning docs (`scoping.md`,
-`pet-project-roadmap.md`, `checklists.md`, `CLAUDE.md`) live one level up and are
-kept separate from the code on purpose.
+Built by hand for learning — a small, honest RAG with its own evals and
+observability rather than a framework. Retrieval is Postgres + pgvector; the
+responder is Claude; answers are graded by a different model (GPT‑4).
 
-## Status: Week 2 — retrieval working
+## Scope & limitations (read this)
 
-The corpus of SEPA rulebooks is indexed into pgvector and a question returns the
-most relevant spec passages (source + page). No answer generation yet — that is
-Week 3. Use the CLI:
+This is a **single, shared RAG service over public data** — one deployment for
+everyone, querying the same public EPC SEPA rulebooks. It **deliberately does not
+address multi-user, authentication, or scaling**: there are no per-user documents
+(the corpus is public and shared), no accounts, no tenant isolation, and no
+rate-limiting yet. Those are conscious deferrals, not oversights — see
+[`docs/writeups/going-public-shared-corpus-rag.md`](docs/writeups/going-public-shared-corpus-rag.md)
+and the roadmap. Two other honest notes: answers are currently **retrieval-recall
+bound** (the right page isn't always in the top‑k — see the
+[retrieval-quality playbook](docs/retrieval-quality-playbook.md)), and the app is
+**not yet deployed** (runs locally).
 
-```bash
-uv run python -m payments_rag.cli index --reset        # ingest corpus/raw/*.pdf
-uv run python -m payments_rag.cli query "how fast does SCT Inst settle?"
-uv run python -m payments_rag.cli stats                # chunks per source
+## Architecture
+
+Three tiers behind a hard HTTP boundary (see
+[ADR‑0017](docs/adr/0017-frontend-angular-fastapi.md)):
+
+```
+Angular SPA (frontend/)  ──HTTP/JSON──▶  FastAPI (api/)  ──▶  Python core (payments_rag/)
+                                                              ├─ retrieval  → Postgres + pgvector
+                                                              ├─ generation → Anthropic (Claude)
+                                                              └─ evals/judge → OpenAI (GPT‑4)
 ```
 
-`query` is the showable checkpoint: type a question, see the retrieved passages.
+The UI has four role-based views: **Ask** (users), **Evals** (developers),
+**Usage** (admins), **Health** (ops).
 
-### Week 1 spike (done)
+## Prerequisites
 
-Four throwaway scripts under `spike/` proved every external integration before
-the real pipeline was built:
+- **Docker** — for Postgres + pgvector
+- **Python 3.14** + [uv](https://docs.astral.sh/uv/) (or a plain venv)
+- **Node 24+** — for the Angular frontend
+- **API keys** — Anthropic and OpenAI
 
-| Step | Proves | Command |
-|---|---|---|
-| 1 | Postgres + pgvector up, SQL/vector session works | `uv run python -m spike.step1_db` |
-| 2 | One raw Claude API call | `uv run python -m spike.step2_llm` |
-| 3 | Embed → store in pgvector → retrieve nearest neighbour | `uv run python -m spike.step3_embed` |
-| 4 | One SEPA PDF page → extract → chunk → embed → store → retrieve | `uv run python -m spike.step4_pdf <pdf>` |
-
-## Setup
-
-Prereqs: Docker, and [`uv`](https://docs.astral.sh/uv/).
+## Quickstart
 
 ```bash
-# 1. Configure secrets
-cp .env.example .env        # then fill in ANTHROPIC_API_KEY + OPENAI_API_KEY
-
-# 2. Start the vector store (Postgres + pgvector on host port 5433)
+# 1. Database (Postgres + pgvector)
 docker compose -f infra/docker-compose.yml up -d
 
-# 3. Install dependencies
-uv sync
+# 2. Python dependencies
+uv sync                       # or: python -m venv .venv && pip install -e .
 
-# 4. Run the spike
-uv run python -m spike.step1_db
-uv run python -m spike.step2_llm
-uv run python -m spike.step3_embed
-# step 4 needs a real PDF — drop one in corpus/raw/ first:
-uv run python -m spike.step4_pdf corpus/raw/your-sepa-spec.pdf 1 -- "what does this page cover?"
+# 3. Corpus — the EPC rulebooks are public specs. Download them from
+#    europeanpaymentscouncil.eu and place them in corpus/raw/ as:
+#      corpus/raw/sct_rulebook_2025.pdf
+#      corpus/raw/sct_inst_rulebook_2025.pdf
+uv run python -m payments_rag.cli index --reset
+
+# 4. API keys
+cp .env.example .env          # then fill ANTHROPIC_API_KEY and OPENAI_API_KEY
+
+# 5. Backend  →  http://127.0.0.1:8000  (interactive docs at /docs)
+uv run uvicorn api.main:app --reload
+
+# 6. Frontend →  http://localhost:4200
+cd frontend && npm install && npm start
 ```
 
-## Tests
+(If you activate the venv instead of using uv, drop the `uv run` prefixes.)
+
+## Evaluation
+
+Quality is measured, not assumed:
 
 ```bash
-uv run pytest          # unit tests (chunker) — fast, no API/DB
+uv run python -m evals.retrieval_eval     # recall@k over the golden set
+uv run python -m evals.answer_eval        # cross-model answer grading (a few paid calls)
+uv run pytest                             # unit tests
 ```
 
-## Tech stack (locked in scoping.md — don't add deps without asking)
+Both evals are also surfaced live in the **Evals** view.
 
-- Python 3.12+ via `uv`
-- LLM: Claude Haiku 4.5 via API (raw SDK, no LangChain/LangGraph). Scoping doc names 3.5 Sonnet; swapped to Haiku for cost.
-- Embeddings: OpenAI `text-embedding-3-small` (pinned — changing it re-embeds everything)
-- Vector store: Postgres + `pgvector` in Docker
-- Citations: structured JSON (later milestone)
+## Screenshots
 
-## Layout
+| Evals (developer) | Usage (admin) | Health (ops) |
+|---|---|---|
+| ![Evals](docs/screenshots/evals.png) | ![Usage](docs/screenshots/usage.png) | ![Health](docs/screenshots/health.png) |
 
-```
-payments_rag/      shared library: config, db, embedding, chunker
-spike/             W1 integration proofs (step1..step4)
-infra/             docker-compose.yml + init.sql (chunks table, vector index)
-corpus/raw/        SEPA / ISO 20022 source PDFs (gitignored)
-corpus/processed/  derived chunks (gitignored)
-tests/             unit tests
-```
+## Repo layout
+
+| Path | What |
+|---|---|
+| `payments_rag/` | Core: retrieval, orchestrator, adapters, health, query log, CLI |
+| `api/` | FastAPI backend (thin HTTP layer over the core) |
+| `frontend/` | Angular SPA (the four views) |
+| `evals/` | Golden sets + retrieval/answer eval harnesses |
+| `docs/` | ADRs, writeups, the retrieval playbook, glossary |
+| `infra/` | `docker-compose.yml` + `init.sql` (Postgres + pgvector) |
+| `corpus/` | Raw PDFs (gitignored) + processed output |
+
+The decision history lives in [`docs/adr/`](docs/adr/); the "why" behind most
+choices is there.
+
+## License
+
+[MIT](LICENSE) © 2026 Serhiy Kucherenko
