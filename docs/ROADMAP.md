@@ -129,6 +129,13 @@ about each concern, including the ones we deliberately skip. Writeup:
 ---
 
 ## Status log
+- **2026-07-11 (M7 polish — Phases 1–3 done)** — Retired Streamlit (`ui/` + dep)
+  and the `spike/` scaffolding; MIT `LICENSE`; outsider `README` with an explicit
+  single-service / public-data / no-scaling scope section + screenshots; **full CI**
+  (GitHub Actions: ruff + pytest against a Postgres+pgvector service with a
+  read-only DB integration test; frontend `npm build`). Git-history secret scan:
+  clean. Verified locally: ruff clean, 53 tests, frontend build green. **Remaining
+  M7:** create the public GitHub repo + push (owner's step).
 - **2026-07-11 (Angular frontend live — ADR-0017 fully implemented)** — Built the
   Angular 20 SPA (`frontend/`) over the FastAPI backend: top nav with role-labeled
   tabs + all four views — **Ask** (cited answer + timing + cost + evidence),
