@@ -3,12 +3,23 @@
 Ask the SEPA payment rulebooks in plain English and get a grounded answer with the
 **exact page cited** — one click opens that page in the PDF.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
+![Angular 20](https://img.shields.io/badge/Angular-20-dd0031.svg)
+<!-- After the first push, set OWNER to your GitHub username and uncomment:
+[![CI](https://github.com/OWNER/payments-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/payments-rag/actions/workflows/ci.yml)
+-->
+
 ![Ask a question, get a cited answer with evidence](docs/screenshots/demo.gif)
 
-A hand-built RAG (no framework) that treats a spec as a first-class source: every
-answer is grounded in retrieved passages, cited to a page, **and measured**.
-Retrieval is Postgres + pgvector, the responder is Claude, and answers are graded
-by a *different* model (GPT‑4) so nothing marks its own homework.
+> **Built from scratch — no LangChain, no LlamaIndex.** Every retrieval and prompting
+> step is hand-written, so each decision is visible in the code, measured against a
+> golden set, and explained in an ADR.
+
+A RAG that treats a spec as a first-class source: every answer is grounded in
+retrieved passages, cited to a page, **and measured**. Retrieval is Postgres +
+pgvector, the responder is Claude, and answers are graded by a *different* model
+(GPT‑4) so nothing marks its own homework.
 
 ## Highlights
 
@@ -29,11 +40,13 @@ by a *different* model (GPT‑4) so nothing marks its own homework.
 
 Three tiers behind a hard HTTP boundary:
 
-```
-Angular SPA (frontend/)  ──HTTP/JSON──▶  FastAPI (api/)  ──▶  Python core (payments_rag/)
-                                                              ├─ retrieval  → Postgres + pgvector
-                                                              ├─ generation → Anthropic (Claude)
-                                                              └─ evals/judge → OpenAI (GPT‑4)
+```mermaid
+flowchart LR
+    UI["Angular SPA<br/>frontend/"] -->|HTTP/JSON| API["FastAPI<br/>api/"]
+    API --> Core["Python core<br/>payments_rag/"]
+    Core -->|retrieval| DB[("Postgres +<br/>pgvector")]
+    Core -->|generation| LLM["Anthropic — Claude"]
+    Core -->|evals / judge| J["OpenAI — GPT-4"]
 ```
 
 The UI has four role-based views — Ask (users), Evals (developers), Usage (admins),
@@ -72,7 +85,18 @@ cd frontend && npm install && npm start
 
 ## Evaluation
 
-Quality is measured, not asserted — and the same numbers show live in the Evals view:
+Quality is measured, not asserted. Against a hand-verified golden set (10 Q&A per track):
+
+| Metric | Result | What it means |
+|---|---|---|
+| Retrieval recall@5 | **0.60** (6/10) | the right page lands in the top 5 — `evals.retrieval_eval` |
+| Answer score, mean | **84.8** / 100 | cross-model GPT‑4 judge — `evals.answer_eval` |
+| Answer pass rate | **90%** (9/10) | judge score ≥ threshold |
+
+The set is small on purpose — every item is hand-verified — and retrieval is the
+current bottleneck (the right page isn't always in the top‑k; see the
+[retrieval-quality playbook](docs/retrieval-quality-playbook.md)). The same numbers
+show live in the **Evals** view. Reproduce:
 
 ```bash
 uv run python -m evals.retrieval_eval     # recall@k over the golden set
