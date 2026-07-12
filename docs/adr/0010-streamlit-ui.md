@@ -1,6 +1,10 @@
 # 0010 — UI: minimal Streamlit
 
-**Status:** Accepted 2026-07-01
+**Status:** Superseded by [ADR-0017](0017-frontend-angular-fastapi.md) (2026-07-05)
+
+The Streamlit UI here was retired in M7; an Angular SPA over a FastAPI backend
+replaced it. This ADR is kept as history — the reasoning below is why Streamlit
+was chosen first, not a description of the current UI.
 
 ## Context
 Running retrieval from the CLI (`cli query "..."`) works but is clumsy for
