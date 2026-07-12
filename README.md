@@ -1,32 +1,33 @@
 # Payments RAG
 
-A retrieval-augmented Q&A tool for the **SEPA payment rulebooks** (SCT and
-SCT Inst). Ask a question in plain English; get a grounded answer with the exact
-rulebook page cited — and one click opens that page in the PDF.
+Ask the SEPA payment rulebooks in plain English and get a grounded answer with the
+**exact page cited** — one click opens that page in the PDF.
 
-![Ask view](docs/screenshots/ask.png)
+![Ask a question, get a cited answer](docs/screenshots/ask.png)
 
-Built by hand for learning — a small, honest RAG with its own evals and
-observability rather than a framework. Retrieval is Postgres + pgvector; the
-responder is Claude; answers are graded by a different model (GPT‑4).
+A hand-built RAG (no framework) that treats a spec as a first-class source: every
+answer is grounded in retrieved passages, cited to a page, **and measured**.
+Retrieval is Postgres + pgvector, the responder is Claude, and answers are graded
+by a *different* model (GPT‑4) so nothing marks its own homework.
 
-## Scope & limitations (read this)
+## Highlights
 
-This is a **single, shared RAG service over public data** — one deployment for
-everyone, querying the same public EPC SEPA rulebooks. It **deliberately does not
-address multi-user, authentication, or scaling**: there are no per-user documents
-(the corpus is public and shared), no accounts, no tenant isolation, and no
-rate-limiting yet. Those are conscious deferrals, not oversights — see
-[`docs/writeups/going-public-shared-corpus-rag.md`](docs/writeups/going-public-shared-corpus-rag.md)
-and the roadmap. Two other honest notes: answers are currently **retrieval-recall
-bound** (the right page isn't always in the top‑k — see the
-[retrieval-quality playbook](docs/retrieval-quality-playbook.md)), and the app is
-**not yet deployed** (runs locally).
+- **Cited answers, click-through to the source.** Each answer links to the exact
+  rulebook page (`#page=N`) — verify, don't just trust.
+- **Measured, not assumed.** A hand-verified golden set drives `recall@k` for
+  retrieval and a cross-model LLM-as-judge for answers, run live in the **Evals**
+  view (currently recall@5 = 0.60; answers 84.8 mean / 90% pass).
+- **Observable by design.** Per-query timing and token cost on every answer, plus a
+  **Health** view that checks all five dependencies (DB, Claude, GPT‑4, OpenAI,
+  service) on demand and every 10 minutes.
+- **Clean architecture.** An Angular SPA over a FastAPI API over a small,
+  framework-free Python core — the core doesn't know a UI exists ([ADR‑0017](docs/adr/0017-frontend-angular-fastapi.md)).
+- **A documented decision trail.** 17 ADRs plus writeups explain the *why* behind
+  every non-obvious choice ([`docs/adr/`](docs/adr/), [`docs/writeups/`](docs/writeups/)).
 
 ## Architecture
 
-Three tiers behind a hard HTTP boundary (see
-[ADR‑0017](docs/adr/0017-frontend-angular-fastapi.md)):
+Three tiers behind a hard HTTP boundary:
 
 ```
 Angular SPA (frontend/)  ──HTTP/JSON──▶  FastAPI (api/)  ──▶  Python core (payments_rag/)
@@ -35,15 +36,12 @@ Angular SPA (frontend/)  ──HTTP/JSON──▶  FastAPI (api/)  ──▶  Py
                                                               └─ evals/judge → OpenAI (GPT‑4)
 ```
 
-The UI has four role-based views: **Ask** (users), **Evals** (developers),
-**Usage** (admins), **Health** (ops).
+The UI has four role-based views — Ask (users), Evals (developers), Usage (admins),
+Health (ops):
 
-## Prerequisites
-
-- **Docker** — for Postgres + pgvector
-- **Python 3.14** + [uv](https://docs.astral.sh/uv/) (or a plain venv)
-- **Node 24+** — for the Angular frontend
-- **API keys** — Anthropic and OpenAI
+| Evals — quality is measured | Health — every dependency, live |
+|---|---|
+| ![Evals view](docs/screenshots/evals.png) | ![Health view](docs/screenshots/health.png) |
 
 ## Quickstart
 
@@ -70,25 +68,26 @@ uv run uvicorn api.main:app --reload
 cd frontend && npm install && npm start
 ```
 
-(If you activate the venv instead of using uv, drop the `uv run` prefixes.)
+(Activated a venv instead of using uv? Drop the `uv run` prefixes.)
 
 ## Evaluation
 
-Quality is measured, not assumed:
+Quality is measured, not asserted — and the same numbers show live in the Evals view:
 
 ```bash
 uv run python -m evals.retrieval_eval     # recall@k over the golden set
 uv run python -m evals.answer_eval        # cross-model answer grading (a few paid calls)
-uv run pytest                             # unit tests
+uv run pytest                             # unit + DB-integration tests
 ```
 
-Both evals are also surfaced live in the **Evals** view.
+## Scope
 
-## Screenshots
-
-| Evals (developer) | Usage (admin) | Health (ops) |
-|---|---|---|
-| ![Evals](docs/screenshots/evals.png) | ![Usage](docs/screenshots/usage.png) | ![Health](docs/screenshots/health.png) |
+A **single, shared service over the public EPC rulebooks** — one deployment for
+everyone. It deliberately skips multi-user, auth, and scaling: the corpus is public
+and shared, so there is nothing to isolate. Those, plus a live cloud deploy, are
+scoped for later — see the [multi-user writeup](docs/writeups/going-public-shared-corpus-rag.md).
+Answers are currently retrieval-recall bound (the right page isn't always in the
+top‑k; see the [retrieval-quality playbook](docs/retrieval-quality-playbook.md)).
 
 ## Repo layout
 
@@ -100,10 +99,8 @@ Both evals are also surfaced live in the **Evals** view.
 | `evals/` | Golden sets + retrieval/answer eval harnesses |
 | `docs/` | ADRs, writeups, the retrieval playbook, glossary |
 | `infra/` | `docker-compose.yml` + `init.sql` (Postgres + pgvector) |
-| `corpus/` | Raw PDFs (gitignored) + processed output |
 
-The decision history lives in [`docs/adr/`](docs/adr/); the "why" behind most
-choices is there.
+The decision history lives in [`docs/adr/`](docs/adr/) — the "why" behind most choices.
 
 ## License
 
