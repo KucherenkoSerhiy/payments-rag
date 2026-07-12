@@ -5,7 +5,6 @@ description = "RAG agent for payments engineers: SEPA SCT / SCT Inst / pacs.* (I
 readme = "README.md"
 requires-python = ">=3.12"
 
-# Dependencies are locked by scoping.md. Do not add others without asking.
 dependencies = [
     "anthropic>=0.40",      # production LLM, raw API
     "openai>=1.55",         # embeddings (text-embedding-3-small) + cross-model judge
@@ -13,7 +12,6 @@ dependencies = [
     "pgvector>=0.3",        # psycopg adapter for the vector type
     "pypdf>=5.1",           # read SEPA spec PDFs
     "python-dotenv>=1.0",   # load .env
-    # minimal query UI (scoping-approved UI option)
     "pyyaml>=6.0",          # golden-set eval files (ADR-0012)
     "fastapi>=0.139.0",
     "uvicorn[standard]>=0.49.0",

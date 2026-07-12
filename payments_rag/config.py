@@ -1,9 +1,5 @@
 """Central config. Reads .env once; every other module imports from here.
 
-Python note (for the .NET reader): there is no DI container. A module is a
-singleton — importing `config` runs this file once and caches the result, so
-these values behave like a static settings class.
-
 Keys are validated lazily (via the require_* functions), not at import, so a
 DB-only script doesn't fail because an unrelated API key is missing.
 """
