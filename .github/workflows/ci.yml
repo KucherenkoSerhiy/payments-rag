@@ -24,6 +24,15 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
+      # config.py resolves each value: env var (here) -> .env (local only,
+      # gitignored) -> hardcoded default. Only DATABASE_URL needs overriding for
+      # CI, to point at the service container above. No API keys are set because
+      # the tests are pure or monkeypatch the LLM/embedding calls -- nothing hits
+      # Anthropic/OpenAI, and the key checks (require_*_key) are lazy.
+      #
+      # If a future job makes real API calls, add repo secrets and reference them:
+      #   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      #   OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
       DATABASE_URL: postgresql://payments:payments@127.0.0.1:5432/payments_rag
     steps:
       - uses: actions/checkout@v4
