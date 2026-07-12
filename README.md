@@ -3,7 +3,7 @@
 Ask the SEPA payment rulebooks in plain English and get a grounded answer with the
 **exact page cited** — one click opens that page in the PDF.
 
-![Ask a question, get a cited answer](docs/screenshots/ask.png)
+![Ask a question, get a cited answer with evidence](docs/screenshots/demo.gif)
 
 A hand-built RAG (no framework) that treats a spec as a first-class source: every
 answer is grounded in retrieved passages, cited to a page, **and measured**.
