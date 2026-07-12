@@ -122,20 +122,3 @@ diagram) as we hit them; the term lands here afterward.
 - **Document AI / layout-aware extraction / OCR** — parsing scanned or
   layout-heavy PDFs. Problem: naive text extraction garbles tables and columns and
   can't read images at all.
-
----
-
-## Python & architecture (non-AI, for completeness)
-
-- **Monkeypatch** — swapping a function/attribute at runtime in a test (≈ .NET Fakes
-  shims). Problem: you want to test your logic without hitting a real API.
-- **ADR (Architecture Decision Record)** — a short dated note capturing one
-  decision and its trade-offs (Nygard format). Problem: the "why" behind a choice
-  evaporates otherwise.
-- **Ports & adapters / hexagonal** — isolate external services (LLM, DB) behind
-  small adapter modules. Problem: swapping a provider shouldn't ripple through the
-  core.
-- **Screaming architecture** — the folder tree names the domain, not the framework,
-  so the structure "screams" what the app does.
-
-_This section can grow its own file if it gets long — for now it rides along._
