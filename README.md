@@ -38,16 +38,9 @@ model (GPT‑4) so nothing marks its own homework.
 
 ## Architecture
 
-Three tiers behind a hard HTTP boundary:
-
-```mermaid
-flowchart LR
-    UI["Angular SPA<br/>frontend/"] -->|HTTP/JSON| API["FastAPI<br/>api/"]
-    API --> Core["Python core<br/>payments_rag/"]
-    Core -->|retrieval| DB[("Postgres +<br/>pgvector")]
-    Core -->|generation| LLM["Anthropic Claude"]
-    Core -->|evals / judge| J["OpenAI GPT-4"]
-```
+Three tiers behind a hard HTTP boundary: an Angular SPA over a FastAPI backend over
+a framework-free Python core (backed by Postgres + pgvector, Claude, and a GPT-4
+eval judge). Module map and request-flow diagrams: [docs/architecture.md](docs/architecture.md).
 
 The UI has four role-based views: Ask (users), Evals (developers), Usage (admins),
 Health (ops).

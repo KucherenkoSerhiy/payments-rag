@@ -1,9 +1,6 @@
 # Architecture
 
-Payments RAG is three tiers behind a hard HTTP boundary: an Angular SPA talks to a
-FastAPI backend, which calls a framework-free Python core. The core is where the
-RAG actually lives; the API is a thin translation layer, and the UI knows nothing
-about pgvector, Claude, or embeddings (ADR-0017).
+Three tiers behind a hard HTTP boundary (ADR-0017):
 
 ```mermaid
 flowchart LR
@@ -19,44 +16,47 @@ understanding. The API and SPA are deliberately thin.
 
 ## Module map
 
-The package is grouped by concern so the folder tree mirrors the architecture
-(ADR-0015): `indexing/`, `retrieval/`, `adapters/`, plus the `orchestrator`.
+The core is one package, `payments_rag/`, grouped by concern so the folders mirror
+the design (ADR-0015). It's listed below in dependency order, outermost first:
 
 ```
-Entry points
-  cli.py                index / query from the terminal
-  api/main.py           FastAPI: /ask, /health, /evals, /usage, /source (PDF)
-  evals/                retrieval + answer eval harnesses
-        │
-        ├── orchestrator.py     answer flow: retrieve → prompt → LLM → cited answer
-        │
-        ├── indexing/           offline: PDF → clean → chunk → embed → store
-        │      ├── indexer.py     CorpusIndexer (the pipeline)
-        │      ├── textprep.py    pure: strip repeated header/footer boilerplate
-        │      └── chunker.py     pure: sentence-aware split + overlap
-        │
-        ├── retrieval/          online: question → top-k chunks
-        │      ├── retriever.py   vector + hybrid (RRF) retrieval
-        │      ├── fusion.py      pure: reciprocal rank fusion
-        │      └── rerank.py      cross-encoder re-ranking (ADR-0016, eval-only)
-        │
-        ├── adapters/           external services (Ports & Adapters)
-        │      ├── db.py          Postgres + pgvector (KNN + full-text)
-        │      ├── embedding.py   OpenAI text-embedding-3-small
-        │      ├── reranker.py    cross-encoder model host (ADR-0016)
-        │      └── llm.py         Anthropic Claude → structured {answer, citations}
-        │
-        ├── health.py           per-dependency probes (DB, responder, judge, embed)
-        └── query_log.py        per-query telemetry (timing, tokens, cost)
+payments_rag/                the framework-free core (all the RAG logic)
+├── cli.py                   entry point: index / query from the terminal
+├── orchestrator.py          the answer flow: retrieve → prompt → LLM → cited answer
+├── indexing/                offline: PDF → clean → chunk → embed → store
+│   ├── indexer.py           CorpusIndexer (the pipeline)
+│   ├── textprep.py          pure: strip repeated header/footer boilerplate
+│   └── chunker.py           pure: sentence-aware split + overlap
+├── retrieval/               online: question → top-k chunks
+│   ├── retriever.py         vector (default) + hybrid RRF retrieval
+│   ├── fusion.py            pure: reciprocal rank fusion
+│   └── rerank.py            cross-encoder re-ranking (ADR-0016, eval-only)
+├── adapters/                external services (Ports & Adapters)
+│   ├── db.py                Postgres + pgvector (KNN + full-text)
+│   ├── embedding.py         OpenAI text-embedding-3-small
+│   ├── reranker.py          cross-encoder model host (ADR-0016)
+│   └── llm.py               Anthropic Claude → structured {answer, citations}
+├── config.py                innermost layer: models, DSN, timeouts, lazy key checks
+├── health.py                per-dependency probes (DB, responder, judge, embed)
+└── query_log.py             per-query telemetry (timing, tokens, cost)
 
-config.py   settings (models, DSN, API timeouts + retries, lazy key validation)
-infra/      docker-compose (Postgres+pgvector) + init.sql (schema + HNSW + FTS)
+api/         FastAPI over the core: /ask, /health, /evals, /usage, /source (PDF)
+frontend/    Angular SPA (Ask / Evals / Usage / Health views)
+evals/       retrieval + answer eval harnesses + golden sets
+infra/       docker-compose (Postgres + pgvector) + init.sql (schema + HNSW + FTS)
+corpus/      source PDFs live here (raw/ + processed/; the PDFs are gitignored)
+tests/       unit + DB / retrieval integration tests
+docs/        ADRs, writeups, glossary, this file
 ```
 
-Dependencies point inward: entry points → orchestrator → indexing/retrieval →
-adapters → config. Nothing in `adapters/` imports the flow layers, and nothing in
-the core imports the entry points, which is exactly what lets the FastAPI API and
-the CLI reuse the *same* core with no duplication.
+Dependencies point inward: `cli`/`api` → `orchestrator` → `indexing`/`retrieval` →
+`adapters` → `config`. Nothing in `adapters/` imports the flow layers, and nothing
+in the core imports the entry points, which is what lets the FastAPI API and the
+CLI reuse the *same* core.
+
+That chain is the **Ask** (answer) path, the main RAG loop. The other three views
+take shorter routes: **Health** probes each adapter directly, **Usage** reads
+`query_log`, and **Evals** runs the harnesses in `evals/` over the golden sets.
 
 ## Path 1: Indexing (offline, when the corpus changes)
 
@@ -140,7 +140,7 @@ sequenceDiagram
     Note over J: Eval path (offline): replay golden set →<br/>Judge grades (question, expected, actual, citations)
 ```
 
-## Where it stands (honest)
+## Where it stands
 
 **Solid**
 - Clean inward-pointing layering; the CLI and the FastAPI API drive one shared core.
@@ -164,6 +164,3 @@ sequenceDiagram
 4. **Single shared service over a public corpus**, so no auth, multi-tenancy, or
    rate-limiting. Deliberate; see the
    [going-public writeup](writeups/going-public-shared-corpus-rag.md).
-
-No major structural flaw. The core is intentionally small, and the missing pieces
-are known and sequenced.

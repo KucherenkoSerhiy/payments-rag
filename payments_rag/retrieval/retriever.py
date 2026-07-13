@@ -2,7 +2,7 @@
 
 The query half of the RAG loop. It embeds the question with the same pinned
 model used at index time and asks pgvector for the nearest chunks. It does NOT
-generate an answer; that is the Week-3 agent layer. Keeping retrieval separate
+generate an answer; that is the orchestrator's job. Keeping retrieval separate
 means a bad result can be diagnosed as a retrieval failure vs a generation one.
 """
 
