@@ -36,7 +36,9 @@ jobs:
       - name: Lint (ruff)
         run: uv run ruff check .
       - name: Test (pytest)
-        run: uv run pytest -q
+        run: uv run pytest -q --ignore=tests/test_smoke.py
+      - name: Smoke (index a sample PDF, answer, expect a citation)
+        run: uv run pytest -q tests/test_smoke.py
       # Note: the paid answer-eval (LLM-as-judge) is not run in CI. It needs the
       # licensed corpus indexed and spends real API budget. Run it locally.
 
