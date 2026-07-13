@@ -1,4 +1,4 @@
-"""Smoke test — does the whole thing start and answer one question end-to-end?
+"""Smoke test: does the whole thing start and answer one question end-to-end?
 
 Run before pushing:  python -m smoke_test
 Exit 0 = healthy, 1 = broken. Hits the real DB + APIs (not a unit test).

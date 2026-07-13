@@ -1,7 +1,7 @@
-"""Reciprocal Rank Fusion — merge several ranked id-lists into one.
+"""Reciprocal Rank Fusion: merge several ranked id-lists into one.
 
 YOUR TASK: implement `reciprocal_rank_fusion`. It's a pure function (ids in,
-ids out — no DB, no API), so tests/test_fusion.py checks it directly.
+ids out, no DB, no API), so tests/test_fusion.py checks it directly.
 
 Why it exists: hybrid retrieval produces two ranked lists (semantic + keyword)
 whose *scores* live on different scales and can't be added. RRF fuses them using

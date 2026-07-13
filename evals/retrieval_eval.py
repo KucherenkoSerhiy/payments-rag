@@ -1,4 +1,4 @@
-"""Retrieval eval — measures recall@k of the retriever against the golden set.
+"""Retrieval eval: measures recall@k of the retriever against the golden set.
 
 Retrieval-only: no LLM, no answer generation. For each labelled question it asks
 "did the retriever surface a truly-relevant page within the top k?", then
@@ -29,7 +29,7 @@ DEFAULT_GOLDEN = str(Path(__file__).resolve().parent / "retrieval_golden_set.yam
 
 
 # ===========================================================================
-# YOUR TASK — implement these two pure functions.
+# YOUR TASK: implement these two pure functions.
 # They take plain data (tuples, bools), so tests/test_retrieval_eval.py can
 # check them with no DB and no API calls.
 # ===========================================================================
@@ -63,7 +63,7 @@ def recall_at_k(hit_flags: list[bool]) -> float:
 
 
 # ===========================================================================
-# Plumbing (provided) — wires the retriever to your functions.
+# Plumbing (provided): wires the retriever to your functions.
 # ===========================================================================
 
 def _load_golden(path: str | Path) -> list[dict]:

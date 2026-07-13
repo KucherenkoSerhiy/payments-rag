@@ -1,7 +1,7 @@
-"""Append-only query log — the telemetry the Usage view reads.
+"""Append-only query log: the telemetry the Usage view reads.
 
 One JSON object per line (JSONL) in data/queries.jsonl: when, what was asked, the
-retrieval mode, and the per-stage timings. Cost is intentionally absent — we
+retrieval mode, and the per-stage timings. Cost is intentionally absent: we
 don't capture token counts yet (a later addition); latency is what we have.
 """
 
@@ -27,7 +27,7 @@ def log_query(
     input_tokens: int = 0,
     output_tokens: int = 0,
 ) -> None:
-    """Append one query event. Best-effort — never let logging break a request."""
+    """Append one query event. Best-effort; never let logging break a request."""
     row = {
         "at": datetime.now().isoformat(timespec="seconds"),
         "question": question,

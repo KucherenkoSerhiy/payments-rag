@@ -1,4 +1,4 @@
-"""FastAPI backend — exposes the Python core for the Angular frontend (ADR-0017).
+"""FastAPI backend: exposes the Python core for the Angular frontend (ADR-0017).
 
     uv run uvicorn api.main:app --reload    # or: python -m uvicorn api.main:app
 

@@ -27,7 +27,7 @@ def _vec(values: Sequence[float]) -> str:
     """Format a float sequence as a pgvector literal, e.g. '[0.1,0.2,0.3]'.
 
     Passed as text and cast with `::vector` in SQL. A bare Python list is sent
-    as `double precision[]`, which the `<=>` operator does not accept — the
+    as `double precision[]`, which the `<=>` operator does not accept; the
     literal + cast is unambiguous for both inserts and similarity queries.
     """
     return "[" + ",".join(repr(float(v)) for v in values) + "]"

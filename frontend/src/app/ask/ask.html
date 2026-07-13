@@ -1,5 +1,5 @@
 <h1 class="ptitle">Ask the SEPA rulebooks</h1>
-<p class="psub">Plain-English questions — answered with the exact page cited.</p>
+<p class="psub">Plain-English questions, answered with the exact page cited.</p>
 
 <div class="bar">
   <i class="ti ti-search"></i>
@@ -27,7 +27,7 @@
   </div>
 
   <div class="ev">
-    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages — click to open the page</span></div>
+    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages (click to open the page)</span></div>
     @for (c of r.citations; track c.chunk_id; let i = $index) {
       <div class="src">
         <a class="srch" [href]="pdfUrl(c)" target="_blank" rel="noopener">
@@ -37,7 +37,7 @@
       </div>
     }
     @if (r.citations.length === 0) {
-      <div class="err">The model cited no specific passage — treat with caution.</div>
+      <div class="err">The model cited no specific passage; treat with caution.</div>
     }
   </div>
 }

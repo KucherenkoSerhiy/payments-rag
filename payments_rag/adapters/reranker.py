@@ -1,9 +1,9 @@
-"""Reranker adapter — score how relevant one passage is to a question.
+"""Reranker adapter: score how relevant one passage is to a question.
 
 A cross-encoder-style reranker. The bi-encoder (embedding.py) embeds the question
-and the passage *separately*, so the whole corpus can be indexed ahead of time —
+and the passage *separately*, so the whole corpus can be indexed ahead of time:
 fast, but it never compares the two directly. This shows the model BOTH together
-and asks for a single relevance score — sharper, but one API call per
+and asks for a single relevance score, sharper, but one API call per
 (question, passage) pair, so it only ever runs over a small fanout of candidates.
 
 We instantiate the cross-encoder as an LLM call rather than a local model
@@ -11,7 +11,7 @@ We instantiate the cross-encoder as an LLM call rather than a local model
 is LATENCY: one sequential API call per candidate makes a full fanout take ~1
 minute per query. So this is EVAL-ONLY (retrieval_eval --rerank) and deliberately
 NOT in the interactive answer path. A production reranker would be a local
-cross-encoder that scores all candidates in one batched pass in tens of ms — see
+cross-encoder that scores all candidates in one batched pass in tens of ms. See
 ADR-0016. Relevance scoring isn't self-marking, so reusing Haiku is fine here.
 """
 

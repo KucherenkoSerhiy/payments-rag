@@ -1,7 +1,7 @@
-"""DB integration test — verifies the real Postgres + pgvector path (read-only).
+"""DB integration test: verifies the real Postgres + pgvector path (read-only).
 
 Runs against the pgvector service in CI and a local DB in dev; a fresh clone with
-no database simply skips. Strictly read-only — it never mutates the corpus.
+no database simply skips. Strictly read-only; it never mutates the corpus.
 """
 
 from __future__ import annotations

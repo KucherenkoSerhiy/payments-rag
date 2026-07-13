@@ -1,4 +1,4 @@
-"""Unit tests for boilerplate detection — deterministic, no API/DB."""
+"""Unit tests for boilerplate detection: deterministic, no API/DB."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from payments_rag.indexing.textprep import clean_page, find_repeated_lines
 
 # Simulate a 6-page doc: same header (with varying page number) on every page,
 # plus body text that varies in WORDS per page (real prose differs in words, not
-# just digits — a line differing only by number would normalise to the same
+# just digits; a line differing only by number would normalise to the same
 # string and be wrongly flagged; that's an accepted limitation of digit-masking).
 _BODIES = [
     "Alpha discusses instant settlement timing.",

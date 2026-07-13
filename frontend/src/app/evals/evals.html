@@ -1,7 +1,7 @@
 <h1 class="ptitle">Evals</h1>
-<p class="psub">Quality against the golden set — for developers.</p>
+<p class="psub">Quality against the golden set. For developers.</p>
 
-<div class="sec">Retrieval — recall&#64;k</div>
+<div class="sec">Retrieval: recall&#64;k</div>
 <div class="controls">
   <div class="ctrl">
     <label>Mode</label>
@@ -22,7 +22,7 @@
 
 <hr class="hr" />
 
-<div class="sec">Answers — quality (last run)</div>
+<div class="sec">Answers: quality (last run)</div>
 @if (answer(); as a) {
   @if (a.empty) {
     <p class="cap">No answer-eval run saved yet. Run <code>python -m evals.answer_eval</code> to populate this.</p>
@@ -34,7 +34,7 @@
     </div>
     <p class="cap">last run {{ a.at }} · ran in {{ a.duration_s }}s</p>
     @for (p of a.per_question; track p.id) {
-      <div class="crit"><span class="score" [class.z]="p.score === 0">{{ p.score }}</span><span>{{ p.id }} — {{ p.critique }}</span></div>
+      <div class="crit"><span class="score" [class.z]="p.score === 0">{{ p.score }}</span><span>{{ p.id }}: {{ p.critique }}</span></div>
     }
   }
 }

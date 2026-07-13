@@ -1,7 +1,7 @@
-"""Answer-quality eval — grade the production answers against the golden set.
+"""Answer-quality eval: grade the production answers against the golden set.
 
 For each question: run the production path (orchestrator.answer -> Claude), then
-a DIFFERENT model (GPT-4, via judge) scores it against the reference answer —
+a DIFFERENT model (GPT-4, via judge) scores it against the reference answer,
 cross-model (ADR-0007). Costs ~10 Claude + 10 GPT-4 calls per run, so run it
 manually/weekly, not per-PR.
 
@@ -29,7 +29,7 @@ PASS_THRESHOLD = 70
 
 
 # ===========================================================================
-# YOUR TASK — implement summarize(). Pure; tests/test_answer_eval.py checks it.
+# YOUR TASK: implement summarize(). Pure; tests/test_answer_eval.py checks it.
 # ===========================================================================
 
 def summarize(scores: list[int], *, threshold: int = PASS_THRESHOLD) -> tuple[float, float]:
@@ -73,7 +73,7 @@ def _save_results(mean: float, pass_rate: float, details: list[dict], duration_s
 
 def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
     entries = _load_golden(golden_path)
-    print(f"\nAnswer eval ({len(entries)} questions) — Claude answers, GPT-4 judges\n")
+    print(f"\nAnswer eval ({len(entries)} questions): Claude answers, GPT-4 judges\n")
 
     scores: list[int] = []
     details: list[dict] = []
@@ -84,7 +84,7 @@ def run(golden_path: str | Path = DEFAULT_GOLDEN) -> tuple[float, float]:
             score, critique = judge(entry["question"], entry["expected_answer"], result.answer)
             scores.append(score)
             details.append({"id": entry["id"], "score": score, "critique": critique})
-            print(f"  [{score:3d}]  {entry['id']}  — {critique}")
+            print(f"  [{score:3d}]  {entry['id']}: {critique}")
 
     duration_s = round(perf_counter() - t0, 2)
     mean, pass_rate = summarize(scores)

@@ -2,14 +2,14 @@
 
 PDFs stamp a header/footer on nearly every page. Here that's the EPC URL + page
 number, the rulebook title, and the "Date issued" line. It's identical across
-pages, so it carries no meaning — but it lands in every chunk and drags every
+pages, so it carries no meaning, but it lands in every chunk and drags every
 embedding toward the same noise, which flattens the similarity signal.
 
 We remove it generically rather than hardcoding EPC strings: a line that recurs
 on a large fraction of a document's pages is structural, not content. Page
 numbers vary, so digits are masked before comparing ("page 35" == "page 36").
 
-This is a frequency count over normalised strings — no ML, just DSA.
+This is a frequency count over normalised strings: no ML, just DSA.
 """
 
 from __future__ import annotations

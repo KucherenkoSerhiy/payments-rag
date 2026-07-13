@@ -1,4 +1,4 @@
-"""Tests for the answer-eval aggregation — your target. Pure, no I/O."""
+"""Tests for the answer-eval aggregation: your target. Pure, no I/O."""
 
 from __future__ import annotations
 

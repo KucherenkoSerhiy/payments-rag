@@ -6,8 +6,8 @@ boundaries and pack whole sentences up to ~`size` words, carrying the last
 ~`overlap` words of trailing sentences into the next chunk so a fact sitting on
 a boundary stays retrievable from either side.
 
-Sentence splitting is a simple regex on . ! ? boundaries — good enough for spec
-prose. It will mis-split on abbreviations ("e.g.", "No.") — an accepted
+Sentence splitting is a simple regex on . ! ? boundaries, good enough for spec
+prose. It will mis-split on abbreviations ("e.g.", "No."), an accepted
 limitation; a real NLP sentence splitter is a later upgrade if evals show it
 matters.
 """
@@ -63,7 +63,7 @@ def chunk_text(text: str, *, size: int = 300, overlap: int = 50) -> list[str]:
     words = 0
     for sent in sentences:
         w = _words(sent)
-        # Flush before this sentence would push us over the target — but only if
+        # Flush before this sentence would push us over the target, but only if
         # we already have content (a single over-size sentence becomes its own chunk).
         if current and words + w > size:
             chunks.append(" ".join(current))

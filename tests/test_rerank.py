@@ -1,4 +1,4 @@
-"""Tests for the pure reranking reorder — order_by_relevance. No DB, no API."""
+"""Tests for the pure reranking reorder: order_by_relevance. No DB, no API."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ def test_mismatched_lengths_raise() -> None:
 
 
 # ---------------------------------------------------------------------------
-# rerank_retrieve — the wiring. We never stub `conn`; we stub the two seams
+# rerank_retrieve, the wiring. We never stub `conn`; we stub the two seams
 # that consume it (retrieve) and hit the API (relevance), so conn is an inert
 # pass-through and None is fine. rerank.py imports the *modules*:
 #     from payments_rag.retrieval import retriever

@@ -1,16 +1,16 @@
-# Retrieval golden set — the ground truth for the recall@k eval.
+# Retrieval golden set: the ground truth for the recall@k eval.
 #
 # Each entry: a real question + the page(s) whose text ANSWERS it. Pages were
 # verified by reading the source PDFs directly (NOT via the retriever), so the
-# labels are unbiased — the eval measures the retriever, not itself.
+# labels are unbiased: the eval measures the retriever, not itself.
 #
 # Coverage spans both rulebooks and diverse themes (timing, availability,
 # settlement, currency, charges, remittance, recall, limits). ~10 entries; grow
 # it over time. See ADR-0012.
 #
-# NOTE — pacs.004 / pacs.008 questions are intentionally absent: those ISO 20022
+# NOTE: pacs.004 / pacs.008 questions are intentionally absent. Those ISO 20022
 # message names have 0 occurrences in the EPC *rulebooks* (they live in the
-# Implementation Guidelines, not yet indexed). See ROADMAP "corpus gap".
+# Implementation Guidelines, which aren't indexed here).
 
 # ---- SCT Inst rulebook ----
 

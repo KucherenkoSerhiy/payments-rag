@@ -1,4 +1,4 @@
-"""Tests for Reciprocal Rank Fusion — your target to make green. Pure, no I/O."""
+"""Tests for Reciprocal Rank Fusion: your target to make green. Pure, no I/O."""
 
 from __future__ import annotations
 

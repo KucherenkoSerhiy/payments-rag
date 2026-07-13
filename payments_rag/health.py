@@ -1,8 +1,8 @@
-"""Multi-dependency health checks — DB, responder, judge, embeddings, service.
+"""Multi-dependency health checks: DB, responder, judge, embeddings, service.
 
 Each check returns {name, kind, ok, latency_ms, detail, at}. The remote checks
 make a minimal (1-token / short-string) call, so they cost ~nothing but confirm
-the integration is actually reachable AND authorized — not merely configured.
+the integration is actually reachable AND authorized, not merely configured.
 """
 
 from __future__ import annotations

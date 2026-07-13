@@ -6,7 +6,7 @@
     uv run python -m payments_rag.cli reset
 
 `query` is the Week-2 checkpoint: it prints the retrieved spec passages with
-source + page. No answer generation yet — that is Week 3.
+source + page. No answer generation yet; that is Week 3.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ def cmd_query(args: argparse.Namespace) -> None:
     with db.connect() as conn:
         results = retrieve(conn, args.question, k=args.k)
     if not results:
-        log.info("no results — is the corpus indexed? try: cli index --reset")
+        log.info("no results, is the corpus indexed? try: cli index --reset")
         return
     print(f'\nQ: {args.question}\n')
     for rank, r in enumerate(results, 1):

@@ -1,7 +1,7 @@
-"""Tests for the recall@k metric functions — your target to make green.
+"""Tests for the recall@k metric functions: your target to make green.
 
 Run: uv run pytest tests/test_retrieval_eval.py
-No DB or API needed — these check pure functions on plain data.
+No DB or API needed; these check pure functions on plain data.
 """
 
 from __future__ import annotations

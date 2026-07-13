@@ -1,4 +1,4 @@
-"""LLM adapter — call Claude and get a structured {answer, citations} back.
+"""LLM adapter: call Claude and get a structured {answer, citations} back.
 
 Mirrors `embedding.py` (the OpenAI adapter): module-level functions with a lazy
 client singleton. Kept a module, not a class, per the Pythonic default at this

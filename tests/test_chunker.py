@@ -1,4 +1,4 @@
-"""Unit tests for the sentence-aware chunker — deterministic, no API/DB."""
+"""Unit tests for the sentence-aware chunker: deterministic, no API/DB."""
 
 from __future__ import annotations
 

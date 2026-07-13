@@ -1,4 +1,4 @@
-"""Orchestrator — the answer flow of the RAG loop.
+"""Orchestrator: the answer flow of the RAG loop.
 
 Pure orchestration: retrieve chunks -> build a grounded prompt -> ask the LLM
 adapter for a structured {answer, citations} -> map the cited chunk ids back to

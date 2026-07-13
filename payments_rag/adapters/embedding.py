@@ -1,4 +1,4 @@
-"""Embedding model wrapper — the keystone shared by indexing and query.
+"""Embedding model wrapper: the keystone shared by indexing and query.
 
 Same model, same call site for both paths, or vectors are not comparable
 (scoping: the Embedding Model is the shared keystone).

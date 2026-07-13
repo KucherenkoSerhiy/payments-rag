@@ -1,4 +1,4 @@
-"""Judge — grade a produced answer against a reference (cross-model).
+"""Judge: grade a produced answer against a reference (cross-model).
 
 Uses a DIFFERENT model from the production responder (GPT-4 vs Claude) so it
 doesn't mark its own homework (ADR-0007). Eval-only, so it lives in `evals/`,

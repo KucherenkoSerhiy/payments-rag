@@ -1,10 +1,10 @@
-"""Integration test for the retrieval path — runs against the real Dockerized
+"""Integration test for the retrieval path: runs against the real Dockerized
 Postgres+pgvector. Skips automatically if the DB isn't reachable, so the unit
 suite still runs without Docker.
 
 Deterministic and free: it uses hand-built unit vectors (no OpenAI calls). The
 query vector is made *identical* to one stored chunk so its cosine distance is
-0 — the global minimum — which makes the assertion robust even if the real
+0 (the global minimum), which makes the assertion robust even if the real
 corpus is also indexed in the same table.
 """
 
@@ -31,7 +31,7 @@ def conn():
     try:
         c = db.connect()
     except Exception:  # psycopg.OperationalError and friends
-        pytest.skip("Postgres not reachable — run: docker compose -f infra/docker-compose.yml up -d")
+        pytest.skip("Postgres not reachable; run: docker compose -f infra/docker-compose.yml up -d")
     db.delete_source(c, TEST_SOURCE)
     c.commit()
     try:

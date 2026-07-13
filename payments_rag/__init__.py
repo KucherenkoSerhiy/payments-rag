@@ -1,4 +1,4 @@
-"""Payments RAG — core library.
+"""Payments RAG: core library.
 
 The framework-free core: indexing (PDF → chunks → embeddings), retrieval (vector
 + hybrid), the answer orchestrator, service adapters (DB, embeddings, LLM),

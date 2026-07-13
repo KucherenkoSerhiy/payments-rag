@@ -1,1 +1,1 @@
-"""Indexing — the offline pipeline: PDF -> clean -> chunk -> embed -> store."""
+"""Indexing, the offline pipeline: PDF -> clean -> chunk -> embed -> store."""
