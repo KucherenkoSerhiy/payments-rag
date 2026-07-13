@@ -52,29 +52,22 @@ Health (ops).
 ## Quickstart
 
 ```bash
-# 1. Database (Postgres + pgvector)
-docker compose -f infra/docker-compose.yml up -d
+make install                  # sync dependencies (uv), then activate the venv it creates
+make db                       # start Postgres + pgvector (Docker)
 
-# 2. Python dependencies
-uv sync                       # or: python -m venv .venv && pip install -e .
+# Corpus: the EPC rulebooks are public specs. Download them from
+# europeanpaymentscouncil.eu into corpus/raw/ as sct_rulebook_2025.pdf and
+# sct_inst_rulebook_2025.pdf, then set your keys and index:
+cp .env.example .env          # fill ANTHROPIC_API_KEY and OPENAI_API_KEY
+make index                    # index the corpus
 
-# 3. Corpus: the EPC rulebooks are public specs. Download them from
-#    europeanpaymentscouncil.eu and place them in corpus/raw/ as:
-#      corpus/raw/sct_rulebook_2025.pdf
-#      corpus/raw/sct_inst_rulebook_2025.pdf
-uv run python -m payments_rag.cli index --reset
-
-# 4. API keys
-cp .env.example .env          # then fill ANTHROPIC_API_KEY and OPENAI_API_KEY
-
-# 5. Backend  →  http://127.0.0.1:8000  (interactive docs at /docs)
-uv run uvicorn api.main:app --reload
-
-# 6. Frontend →  http://localhost:4200
-cd frontend && npm install && npm start
+make api                      # backend  → http://127.0.0.1:8000  (docs at /docs)
+make ui                       # frontend → http://localhost:4200
 ```
 
-(Activated a venv instead of using uv? Drop the `uv run` prefixes.)
+`make help` lists every target, and the [`Makefile`](Makefile) is the raw commands
+if you'd rather run them yourself. The run targets call `python` directly, so an
+activated venv works as-is; only `make install` uses uv.
 
 ## Evaluation
 
