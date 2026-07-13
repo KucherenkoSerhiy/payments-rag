@@ -1,6 +1,6 @@
 # 0007 — Eval scoring: cross-model LLM-as-judge
 
-**Status:** Accepted (2026-06, scoping v1) — not yet implemented (Week 3)
+**Status:** Accepted 2026-06 — implemented
 
 ## Context
 Accuracy on the golden set is the project's headline metric. Answers are free

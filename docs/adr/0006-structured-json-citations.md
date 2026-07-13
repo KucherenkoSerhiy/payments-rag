@@ -1,6 +1,6 @@
 # 0006 — Citations: structured JSON output
 
-**Status:** Accepted (2026-06, scoping v1) — not yet implemented (Week 3)
+**Status:** Accepted 2026-06 — implemented
 
 ## Context
 The product's trust model is "read the answer, then click through to the exact

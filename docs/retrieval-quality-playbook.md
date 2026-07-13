@@ -1,8 +1,9 @@
-# Retrieval Quality Playbook (internal)
+# Retrieval Quality Playbook
 
-Our own guidance for the "make the answers actually good" work. Not a public
-article — a reference to pick up from later. See also ADR-0014 (retrieval
-levers), ADR-0009 (measure-before-ship discipline), and `docs/glossary.md`.
+Guidance for the "make the answers actually good" work: how to diagnose where
+retrieval is losing recall, and the ranked stack of fixes to reach for. See also
+ADR-0014 (retrieval levers), ADR-0009 (measure-before-ship discipline), and
+`docs/glossary.md`.
 
 ## The diagnosis (data-grounded, 2026-07-10)
 

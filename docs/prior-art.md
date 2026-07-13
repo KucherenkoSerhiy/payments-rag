@@ -13,7 +13,7 @@ revisit these** instead of hand-tuning. Recorded 2026-07 after M6.
 | (didn't build) reranking — the +0.10 lever | **`sentence-transformers` CrossEncoder** + **`BAAI/bge-reranker-v2-m3`** | Best open-weight reranker (~278M params, CPU-OK for small batches). Swap backends via a `rerankers`-style interface; `FlashRank` for a light option. Cohere Rerank = hosted equivalent. |
 | pgvector + Postgres FTS (our hybrid hack) | Native hybrid in **Qdrant / Weaviate / Elasticsearch / Milvus** | Sparse BM25 + dense vector in one system, RRF built in. Weaviate `alpha` knob (0=keyword…1=vector); Qdrant `Fusion.RRF` / `DBSF`. |
 | `ts_rank` (TF-IDF-ish, not real BM25) | **ParadeDB / `pg_search`** | Real BM25 *inside Postgres* if we want to stay on one DB. |
-| (upcoming M4) answer-quality eval | **RAGAS** | RAG-specific: faithfulness, answer-relevancy, context metrics. The answer-side analog of `ranx`. |
+| answer-quality eval | **RAGAS** | RAG-specific: faithfulness, answer-relevancy, context metrics. The answer-side analog of `ranx`. |
 | the whole loop | LlamaIndex / Haystack | Bundle retrievers, `QueryFusionRetriever` (RRF), reranker post-processors. (Scoping keeps our core framework-free — ADR-0004.) |
 
 ## Why our M6 result was neutral (and the approach still sound)

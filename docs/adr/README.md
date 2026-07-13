@@ -16,13 +16,13 @@ relitigate a settled call.
 | [0003](0003-embedding-model-pinned.md) | Embeddings: `text-embedding-3-small`, pinned | Accepted |
 | [0004](0004-raw-api-no-framework.md) | Raw API + light orchestration (no LangChain) | Accepted |
 | [0005](0005-production-llm-haiku.md) | Production LLM: Claude Haiku 4.5 | Accepted (supersedes scoping) |
-| [0006](0006-structured-json-citations.md) | Citations: structured JSON output | Accepted (not yet built) |
-| [0007](0007-cross-model-llm-judge.md) | Eval: cross-model LLM-as-judge | Accepted (not yet built) |
+| [0006](0006-structured-json-citations.md) | Citations: structured JSON output | Accepted |
+| [0007](0007-cross-model-llm-judge.md) | Eval: cross-model LLM-as-judge | Accepted |
 | [0008](0008-per-page-chunking.md) | Chunk per page (citation accuracy) | Accepted |
 | [0009](0009-boilerplate-and-sentence-chunking.md) | Boilerplate strip + sentence-aware chunking | Accepted (measured neutral on retrieval) |
 | [0010](0010-streamlit-ui.md) | UI: minimal Streamlit | Accepted (superseded by 0017) |
 | [0011](0011-repo-layout.md) | Code in its own repository | Accepted |
-| [0012](0012-golden-set-in-repo.md) | Golden eval set: YAML in repo | Accepted (not yet built) |
+| [0012](0012-golden-set-in-repo.md) | Golden eval set: YAML in repo | Accepted |
 | [0013](0013-deploy-docker-local.md) | Deploy: Docker, local only | Accepted |
 | [0014](0014-improve-retrieval-rerank-hybrid.md) | Improve retrieval: rerank / hybrid | Accepted (vector default; hybrid optional) |
 | [0015](0015-package-by-concern-llm-adapter.md) | Package by concern; extract LLM adapter | Accepted |

@@ -1,6 +1,6 @@
 # 0012 — Golden eval set: YAML file in the repo
 
-**Status:** Accepted (2026-06, scoping v1) — not yet built (Week 3)
+**Status:** Accepted 2026-06 — built
 
 ## Context
 The eval suite replays a curated set of questions with expected answers. That set

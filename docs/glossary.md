@@ -97,8 +97,8 @@ diagram) as we hit them; the term lands here afterward.
 - **Cross-model judging** — the judge is a *different* model from the producer
   (GPT-4 grades Claude). Problem: a model grading its own homework is biased
   (ADR-0007).
-- **Answer correctness** — does the answer match the reference facts? (What M4
-  measures.)
+- **Answer correctness** — does the answer match the reference facts? (What the
+  answer eval measures.)
 - **Faithfulness / groundedness** — is every claim in the answer *supported by the
   retrieved context*? Problem: an answer can be factually right yet unsupported (a
   lucky guess); this catches the difference. Distinct from correctness.

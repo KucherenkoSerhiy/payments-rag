@@ -1,12 +1,11 @@
-# UI — current state (Streamlit), 2026-07-11
+# UI — Streamlit baseline (historical snapshot, 2026-07-11)
 
-A snapshot of the UI as built in Streamlit, recorded **before** the frontend
-rebuild (see ADR-0017). It's the baseline the new frontend must match and exceed.
+> **Retired.** This describes the first UI, built in Streamlit, before it was
+> replaced by the Angular + FastAPI frontend (ADR-0017). The `ui/` code it refers
+> to has been removed from the repo. Kept as a record of the baseline the current
+> frontend was built to match and exceed.
 
-Screenshots captured 2026-07-11 (drop them in `docs/screenshots/` to render):
-`ask.png`, `evals.png`, `usage.png`, `health-sidebar.png`.
-
-## What exists today
+## What it was
 
 A Streamlit multipage app (`ui/streamlit_app.py` + `ui/views/`), three views
 behind a sidebar nav, with a shared sidebar **Health** panel.

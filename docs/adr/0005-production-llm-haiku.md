@@ -1,6 +1,6 @@
 # 0005 — Production LLM: Claude Haiku 4.5
 
-**Status:** Accepted 2026-06-15 — **supersedes** scoping v1's "Claude 3.5 Sonnet"
+**Status:** Accepted 2026-06-15 — **supersedes** the earlier "Claude 3.5 Sonnet" choice
 
 ## Context
 Scoping v1 named Claude 3.5 Sonnet as the production responder. By 2026-06 that
@@ -23,5 +23,5 @@ a hardcode.
   goal than Sonnet. Accepted because the model is a config swap and the eval will
   quantify the trade-off (don't guess, measure).
 - The eval **judge** must stay a *different* model (GPT-4) — see [0007](0007-cross-model-llm-judge.md).
-- `scoping.md` carries a reconciliation note; the contract's rationale is
+- The switch was purely a model-availability update; the contract's rationale is
   otherwise unchanged (same vendor, same role).
