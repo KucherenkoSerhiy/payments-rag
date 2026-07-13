@@ -1,7 +1,21 @@
 # Architecture
 
-Three independent paths, each running at a different time. Solid = built today;
-dashed/"planned" = Week 3+.
+Payments RAG is three tiers behind a hard HTTP boundary: an Angular SPA talks to a
+FastAPI backend, which calls a framework-free Python core. The core is where the
+RAG actually lives; the API is a thin translation layer, and the UI knows nothing
+about pgvector, Claude, or embeddings (ADR-0017).
+
+```mermaid
+flowchart LR
+    UI["Angular SPA<br/>frontend/"] -->|HTTP/JSON| API["FastAPI<br/>api/main.py"]
+    API --> Core["Python core<br/>payments_rag/"]
+    Core -->|retrieval| DB[("Postgres +<br/>pgvector")]
+    Core -->|generation| LLM["Anthropic — Claude"]
+    Core -->|evals / judge| J["OpenAI — GPT-4"]
+```
+
+Everything below is about the **core** (`payments_rag/`) — the part worth
+understanding. The API and SPA are deliberately thin.
 
 ## Module map
 
@@ -9,7 +23,10 @@ The package is grouped by concern so the folder tree mirrors the architecture
 (ADR-0015): `indexing/`, `retrieval/`, `adapters/`, plus the `orchestrator`.
 
 ```
-cli.py / ui/streamlit_app.py / smoke_test.py   entry points
+Entry points
+  cli.py                index / query from the terminal
+  api/main.py           FastAPI: /ask, /health, /evals, /usage, /source (PDF)
+  evals/                retrieval + answer eval harnesses
         │
         ├── orchestrator.py     answer flow: retrieve → prompt → LLM → cited answer
         │
@@ -20,20 +37,26 @@ cli.py / ui/streamlit_app.py / smoke_test.py   entry points
         │
         ├── retrieval/          online: question → top-k chunks
         │      ├── retriever.py   vector + hybrid (RRF) retrieval
-        │      └── fusion.py      pure: reciprocal rank fusion
+        │      ├── fusion.py      pure: reciprocal rank fusion
+        │      └── rerank.py      cross-encoder re-ranking (ADR-0016, eval-only)
         │
-        └── adapters/           external services (Ports & Adapters)
-               ├── db.py          Postgres + pgvector (KNN + full-text)
-               ├── embedding.py   OpenAI text-embedding-3-small
-               └── llm.py         Anthropic Claude → structured {answer, citations}
+        ├── adapters/           external services (Ports & Adapters)
+        │      ├── db.py          Postgres + pgvector (KNN + full-text)
+        │      ├── embedding.py   OpenAI text-embedding-3-small
+        │      ├── reranker.py    cross-encoder model host (ADR-0016)
+        │      └── llm.py         Anthropic Claude → structured {answer, citations}
+        │
+        ├── health.py           per-dependency probes (DB, responder, judge, embed)
+        └── query_log.py        per-query telemetry (timing, tokens, cost)
 
-config.py   settings (models, DSN, API timeouts, lazy key validation)
+config.py   settings (models, DSN, API timeouts + retries, lazy key validation)
 infra/      docker-compose (Postgres+pgvector) + init.sql (schema + HNSW + FTS)
 ```
 
 Dependencies point inward: entry points → orchestrator → indexing/retrieval →
-adapters → config. Nothing in `adapters/` imports the flow layers, and nothing
-in the library imports the entry points.
+adapters → config. Nothing in `adapters/` imports the flow layers, and nothing in
+the core imports the entry points — which is exactly what lets the FastAPI API and
+the CLI reuse the *same* core with no duplication.
 
 ## Path 1 — Indexing (offline, when the corpus changes)
 
@@ -72,12 +95,12 @@ sequenceDiagram
     IX-->>Dev: stats (docs, pages, chunks)
 ```
 
-## Path 2 — Query / retrieval (online, per question) — built today
+## Path 2 — Retrieval (online, per question)
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant UI as UI / CLI
+    participant UI as SPA / API / CLI
     participant RT as retriever
     participant EM as embedding
     participant OAI as OpenAI API
@@ -96,12 +119,12 @@ sequenceDiagram
     UI-->>User: passages + source/page/distance
 ```
 
-## Path 3 — Answer generation + eval (PLANNED, Week 3)
+## Path 3 — Answer generation + eval (online, per question)
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant OR as orchestrator (planned)
+    participant OR as orchestrator
     participant RT as retriever
     participant LLM as Claude Haiku 4.5
     participant J as Judge GPT-4 (eval only)
@@ -117,29 +140,30 @@ sequenceDiagram
     Note over J: Eval path (offline): replay golden set →<br/>Judge grades (question, expected, actual, citations)
 ```
 
-## Architecture review — is it clear and explicit? Mostly yes.
+## Where it stands (honest)
 
-**Strengths**
-- Clean layering; the three paths share exactly one keystone (the embedding
-  model) and one store, which is the correct RAG shape.
-- Explicit seams: `retriever.retrieve`, `db.nearest`, `embedding.embed` are the
-  swap points (e.g. change vector store, change model) — each isolated.
-- Pure logic (`chunker`, `textprep`) is separated from I/O, so it's unit-tested.
+**Solid**
+- Clean inward-pointing layering; the CLI and the FastAPI API drive one shared core.
+- Pure logic (`chunker`, `textprep`, `fusion`) is separated from I/O and unit-tested.
+- External calls have per-attempt timeouts and bounded retries (`config.API_*`) —
+  added after the localhost/IPv6 hang made the cost of *not* having them concrete
+  (see [the-localhost-trap writeup](writeups/the-localhost-trap-windows-ipv6.md)).
+- Answers are generated *and measured*: a cross-model LLM-as-judge grades against a
+  hand-verified golden set (recall@k for retrieval, correctness/faithfulness for
+  answers), so quality is a number, not a vibe.
 
-**Gaps / things to watch (honest list)**
-1. **No answer layer yet** — Path 3 is the intended next build. Retrieval is
-   proven; generation + citations are not.
-2. **No resilience on external calls** — no retry/timeout/circuit-breaker on the
-   OpenAI/Anthropic calls. The ~13-min first-batch hang is the symptom. Scheduled
-   for Week 4; until then a flaky API blocks the pipeline.
-3. **No eval harness** — the single biggest gap for "proof it works" (see below).
-   Retrieval quality is currently unmeasured beyond eyeballing.
-4. **`nearest` searches the whole table** — no per-document/source filter. Fine
-   now; a real need once you want "search only the SCT Inst rulebook."
-5. **Minor cohesion nit** — embedding *batching* lives in the indexer, not in
-   `embedding.py`. Defensible (the indexer owns throughput), but worth noting.
-6. **Dead code** — `clean_page`'s `U+FFFD` replace is a no-op (the artifact was
-   misdiagnosed; see ADR 0009). Harmless; remove when convenient.
+**Known gaps — sequenced, not accidental**
+1. **Retrieval recall is the current bottleneck.** The right page isn't always in the
+   top-k: casual question wording vs. formal spec wording is a vocabulary mismatch.
+   The fix stack (multi-query, etc.) is written up in the
+   [retrieval-quality playbook](retrieval-quality-playbook.md).
+2. **Reranking is eval-only.** A cross-encoder lifts recall (measured 0.60 → 0.70) but
+   adds seconds of latency, so it stays out of the live path for now (ADR-0016).
+3. **`nearest` searches the whole table** — no per-document filter yet ("search only
+   the SCT Inst rulebook"). Fine at this corpus size.
+4. **Single shared service over a public corpus** — no auth, multi-tenancy, or
+   rate-limiting. Deliberate; see the
+   [going-public writeup](writeups/going-public-shared-corpus-rag.md) and the ROADMAP.
 
-No major structural flaw. The architecture is appropriately small and the
-missing pieces are *known and sequenced*, not accidental.
+No major structural flaw. The core is intentionally small, and the missing pieces
+are known and sequenced.
