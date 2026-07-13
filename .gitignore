@@ -25,3 +25,6 @@ session-log.md
 
 # Runtime artifacts: query log + last eval results (regenerated locally)
 data/
+
+# Private planning notes — not published
+docs/ROADMAP.md
