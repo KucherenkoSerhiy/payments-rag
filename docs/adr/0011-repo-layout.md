@@ -1,4 +1,4 @@
-# 0011 — Code in its own repository
+# 0011 - Code in its own repository
 
 **Status:** Accepted 2026-06-15
 

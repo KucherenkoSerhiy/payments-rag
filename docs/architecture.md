@@ -10,11 +10,11 @@ flowchart LR
     UI["Angular SPA<br/>frontend/"] -->|HTTP/JSON| API["FastAPI<br/>api/main.py"]
     API --> Core["Python core<br/>payments_rag/"]
     Core -->|retrieval| DB[("Postgres +<br/>pgvector")]
-    Core -->|generation| LLM["Anthropic — Claude"]
-    Core -->|evals / judge| J["OpenAI — GPT-4"]
+    Core -->|generation| LLM["Anthropic Claude"]
+    Core -->|evals / judge| J["OpenAI GPT-4"]
 ```
 
-Everything below is about the **core** (`payments_rag/`) — the part worth
+Everything below is about the **core** (`payments_rag/`), the part worth
 understanding. The API and SPA are deliberately thin.
 
 ## Module map
@@ -55,10 +55,10 @@ infra/      docker-compose (Postgres+pgvector) + init.sql (schema + HNSW + FTS)
 
 Dependencies point inward: entry points → orchestrator → indexing/retrieval →
 adapters → config. Nothing in `adapters/` imports the flow layers, and nothing in
-the core imports the entry points — which is exactly what lets the FastAPI API and
+the core imports the entry points, which is exactly what lets the FastAPI API and
 the CLI reuse the *same* core with no duplication.
 
-## Path 1 — Indexing (offline, when the corpus changes)
+## Path 1: Indexing (offline, when the corpus changes)
 
 ```mermaid
 sequenceDiagram
@@ -95,7 +95,7 @@ sequenceDiagram
     IX-->>Dev: stats (docs, pages, chunks)
 ```
 
-## Path 2 — Retrieval (online, per question)
+## Path 2: Retrieval (online, per question)
 
 ```mermaid
 sequenceDiagram
@@ -119,7 +119,7 @@ sequenceDiagram
     UI-->>User: passages + source/page/distance
 ```
 
-## Path 3 — Answer generation + eval (online, per question)
+## Path 3: Answer generation + eval (online, per question)
 
 ```mermaid
 sequenceDiagram
@@ -145,25 +145,25 @@ sequenceDiagram
 **Solid**
 - Clean inward-pointing layering; the CLI and the FastAPI API drive one shared core.
 - Pure logic (`chunker`, `textprep`, `fusion`) is separated from I/O and unit-tested.
-- External calls have per-attempt timeouts and bounded retries (`config.API_*`) —
+- External calls have per-attempt timeouts and bounded retries (`config.API_*`),
   added after the localhost/IPv6 hang made the cost of *not* having them concrete
   (see [the-localhost-trap writeup](writeups/the-localhost-trap-windows-ipv6.md)).
 - Answers are generated *and measured*: a cross-model LLM-as-judge grades against a
   hand-verified golden set (recall@k for retrieval, correctness/faithfulness for
   answers), so quality is a number, not a vibe.
 
-**Known gaps — sequenced, not accidental**
+**Known gaps (sequenced, not accidental)**
 1. **Retrieval recall is the current bottleneck.** The right page isn't always in the
    top-k: casual question wording vs. formal spec wording is a vocabulary mismatch.
    The fix stack (multi-query, etc.) is written up in the
    [retrieval-quality playbook](retrieval-quality-playbook.md).
 2. **Reranking is eval-only.** A cross-encoder lifts recall (measured 0.60 → 0.70) but
    adds seconds of latency, so it stays out of the live path for now (ADR-0016).
-3. **`nearest` searches the whole table** — no per-document filter yet ("search only
+3. **`nearest` searches the whole table**, with no per-document filter yet ("search only
    the SCT Inst rulebook"). Fine at this corpus size.
-4. **Single shared service over a public corpus** — no auth, multi-tenancy, or
+4. **Single shared service over a public corpus**, so no auth, multi-tenancy, or
    rate-limiting. Deliberate; see the
-   [going-public writeup](writeups/going-public-shared-corpus-rag.md) and the ROADMAP.
+   [going-public writeup](writeups/going-public-shared-corpus-rag.md).
 
 No major structural flaw. The core is intentionally small, and the missing pieces
 are known and sequenced.

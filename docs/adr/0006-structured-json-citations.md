@@ -1,6 +1,6 @@
-# 0006 — Citations: structured JSON output
+# 0006 - Citations: structured JSON output
 
-**Status:** Accepted 2026-06 — implemented
+**Status:** Accepted 2026-06 - implemented
 
 ## Context
 The product's trust model is "read the answer, then click through to the exact
@@ -19,8 +19,8 @@ rather than inline citation markers in prose.
 ## Consequences
 - Slightly more rigid prompt; the model must conform to a schema (supported via
   structured outputs / a strict tool).
-- Citations are machine-checkable — we can score citation correctness as a
-  **separate** signal from answer-text quality (mitigates the scoping risk that a
+- Citations are machine-checkable: we can score citation correctness as a
+  separate signal from answer-text quality (mitigates the scoping risk that a
   judge grades the prose high while the citations point at the wrong chunk).
-- Depends on per-chunk stable IDs — already stored (`chunks.id`, plus
-  source+page for the human-facing link).
+- Depends on per-chunk stable IDs, already stored (`chunks.id`, plus source+page
+  for the human-facing link).

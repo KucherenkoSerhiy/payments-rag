@@ -1,4 +1,4 @@
-# 0001 — Implementation language: Python
+# 0001 - Implementation language: Python
 
 **Status:** Accepted (2026-06, scoping v1)
 
@@ -11,8 +11,8 @@ Build in Python.
 
 ## Alternatives
 - **.NET** (owner's strongest stack). Fastest to write, but the AI ecosystem is
-  Python-first — every library choice would fight the grain.
-- **Dual .NET + Python** (Semantic Kernel layer). Adds 2–3 days to also expose a
+  Python-first, so every library choice would fight the grain.
+- **Dual .NET + Python** (Semantic Kernel layer). Adds 2-3 days to also expose a
   .NET surface. Not worth it for this project.
 
 ## Consequences

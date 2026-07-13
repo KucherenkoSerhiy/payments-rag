@@ -2,7 +2,7 @@
 
 Each ADR captures one decision: the context, the choice, the alternatives, and
 the consequences we accepted. Format is [Michael Nygard's](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions).
-They are immutable once Accepted — a reversal is a *new* ADR that supersedes the
+They are immutable once Accepted; a reversal is a *new* ADR that supersedes the
 old one, so the history of *why* survives.
 
 Why bother on a solo project: decisions fade from memory and get silently
