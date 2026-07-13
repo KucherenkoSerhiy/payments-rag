@@ -23,9 +23,6 @@ from payments_rag.indexing.textprep import clean_page, find_repeated_lines
 
 logger = logging.getLogger(__name__)
 
-# Synthetic spike fixture — not part of the real corpus, skip it when indexing.
-_FIXTURE_NAMES = {"sample_sepa.pdf"}
-
 
 @dataclass
 class IndexStats:
@@ -54,10 +51,8 @@ class CorpusIndexer:
     # ----- public API -----
 
     def index_corpus(self, corpus_dir: str | Path = "corpus/raw") -> list[IndexStats]:
-        """Index every real PDF in a directory (skips the synthetic spike fixture)."""
-        pdfs = sorted(
-            p for p in Path(corpus_dir).glob("*.pdf") if p.name not in _FIXTURE_NAMES
-        )
+        """Index every PDF in a directory."""
+        pdfs = sorted(Path(corpus_dir).glob("*.pdf"))
         if not pdfs:
             raise SystemExit(f"no corpus PDFs found in {corpus_dir}")
         return [self.index_pdf(p) for p in pdfs]

@@ -1,5 +1,7 @@
-"""Payments RAG agent — shared library code.
+"""Payments RAG — core library.
 
-Grows into agent/indexing/eval over the roadmap. For the W1 spike it holds
-config, the DB helper, and the chunker (the one piece with a real unit test).
+The framework-free core: indexing (PDF → chunks → embeddings), retrieval (vector
++ hybrid), the answer orchestrator, service adapters (DB, embeddings, LLM),
+health checks, the query log, and the CLI. The FastAPI app (`api/`) and the eval
+harnesses (`evals/`) sit on top of this package.
 """

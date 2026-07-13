@@ -85,7 +85,7 @@ def nearest(
 
 
 def delete_source(conn: psycopg.Connection, source: str) -> int:
-    """Remove all chunks for a source (so spike re-runs stay idempotent)."""
+    """Remove all chunks for a source (so re-indexing a document stays idempotent)."""
     cur = conn.execute("DELETE FROM chunks WHERE source = %s", (source,))
     return cur.rowcount
 
@@ -97,7 +97,7 @@ def count(conn: psycopg.Connection) -> int:
 
 
 def clear_all(conn: psycopg.Connection) -> int:
-    """Delete every chunk (e.g. to drop stale spike data before a clean index)."""
+    """Delete every chunk (e.g. to drop stale data before a clean re-index)."""
     cur = conn.execute("DELETE FROM chunks")
     return cur.rowcount
 
