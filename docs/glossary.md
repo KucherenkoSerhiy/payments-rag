@@ -110,9 +110,11 @@ diagram) as we hit them; the term lands here afterward.
 
 - **Query expansion / multi-query**: rewrite or expand the question into several
   before retrieving. Problem: a single phrasing misses passages worded differently.
-- **HyDE (Hypothetical Document Embeddings)**: embed a *hypothetical answer*
-  instead of the question. Problem: questions and answers are worded differently; a
-  drafted answer sits closer to the real passage in vector space.
+- **HyDE (Hypothetical Document Embeddings)**: embed a made-up *draft answer*
+  instead of the question, on the theory that a drafted answer sits closer to the
+  real passage than the question does. We don't use it: drafting an answer to go
+  find the answer invites hallucination, and in a citation tool a confidently-wrong
+  lead is worse than "not found" (see the playbook's "what not to do").
 - **Late interaction / ColBERT**: match at the token level instead of one vector
   per chunk. Problem: a single chunk vector blurs detail; token-level keeps it, at
   higher storage/compute cost.
@@ -121,4 +123,11 @@ diagram) as we hit them; the term lands here afterward.
   a callable function. (Same masking machinery as structured outputs.)
 - **Document AI / layout-aware extraction / OCR**: parsing scanned or
   layout-heavy PDFs. Problem: naive text extraction garbles tables and columns and
-  can't read images at all.
+  can't read images at all. ("Reading text from images" is OCR.)
+- **Streaming (token streaming / SSE)**: send the model's reply token-by-token so
+  the UI shows it appearing live. Problem: a multi-second answer feels frozen if it
+  lands all at once. (Out of scope here; the answer comes back in one response.)
+- **Multi-turn / conversational RAG**: keep the chat history so a follow-up ("and
+  for standard SCT?") resolves against what was already asked. Problem: a one-shot
+  Q&A box forgets everything between questions. (Out of scope here; each ask is
+  independent.)
