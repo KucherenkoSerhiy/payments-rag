@@ -30,7 +30,7 @@ explicitly not as a product default.
 promoted *every fetchable relevant page* into the top-5, i.e. it did as well as
 the fanout theoretically allows. The single rescued question is
 `sct-inst-currency`, the same page hybrid rescued via keyword (ADR-0014), and the
-same one that scored **0** in the M4 answer eval because the "euro" page never
+same one that scored **0** in the answer eval because the "euro" page never
 reached the top-5. The other three misses (charging-principle, remittance-length,
 value-limits) are never fetched even at 20, so they're recall-bound and untouchable
 by reranking. Confirms ADR-0014's diagnosis: **the bottleneck is recall, not ranking.**

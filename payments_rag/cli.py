@@ -106,7 +106,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_query.add_argument("-k", type=int, default=5, help="how many chunks to return")
     p_query.set_defaults(func=cmd_query)
 
-    p_ask = sub.add_parser("ask", help="answer a question with citations (M3)")
+    p_ask = sub.add_parser("ask", help="answer a question with citations")
     p_ask.add_argument("question")
     p_ask.add_argument("-k", type=int, default=5, help="chunks to retrieve for context")
     p_ask.set_defaults(func=cmd_ask)

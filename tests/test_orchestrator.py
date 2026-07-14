@@ -1,4 +1,4 @@
-"""Tests for the orchestrator: your M3 target to make green.
+"""Tests for the orchestrator: the answer flow.
 
 No DB and no API: `answer` is exercised with `retrieve`, `build_prompt`, and
 `llm.complete_json` monkeypatched, so it tests only your wiring/mapping logic.

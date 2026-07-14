@@ -75,6 +75,6 @@ Decisions:
 - **Deprioritize further tuning** (fusion weighting, k0, `-3-large`). Diminishing
   returns on a toy corpus; revisit only with a bigger corpus + golden set.
 
-M6's value was the measurement discipline (vector 0.60 / rerank-ceiling 0.70 /
+The value here was the measurement discipline (vector 0.60 / rerank-ceiling 0.70 /
 hybrid neutral) and reusable infra, not a headline number. Knowing when to stop
 tuning is the call.

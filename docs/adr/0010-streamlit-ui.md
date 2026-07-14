@@ -2,7 +2,7 @@
 
 **Status:** Superseded by [ADR-0017](0017-frontend-angular-fastapi.md) (2026-07-05)
 
-The Streamlit UI here was retired in M7; an Angular SPA over a FastAPI backend
+The Streamlit UI here was retired; an Angular SPA over a FastAPI backend
 replaced it. This ADR is kept as history. The reasoning below is why Streamlit
 was chosen first; it is not a description of the current UI.
 

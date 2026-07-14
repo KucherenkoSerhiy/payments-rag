@@ -3,7 +3,7 @@
 We built retrieval, fusion, and evaluation from scratch on purpose (learning; see
 ADR-0004). Almost every piece has a mature open-source equivalent. This is the
 off-ramp: **if retrieval quality becomes a real bottleneck or the corpus grows,
-revisit these** instead of hand-tuning. Recorded 2026-07 after M6.
+revisit these** instead of hand-tuning. Recorded 2026-07.
 
 ## What we built → what to reach for
 
@@ -16,7 +16,7 @@ revisit these** instead of hand-tuning. Recorded 2026-07 after M6.
 | answer-quality eval | **RAGAS** | RAG-specific: faithfulness, answer-relevancy, context metrics. The answer-side analog of `ranx`. |
 | the whole loop | LlamaIndex / Haystack | Bundle retrievers, `QueryFusionRetriever` (RRF), reranker post-processors. (Scoping keeps our core framework-free; see ADR-0004.) |
 
-## Why our M6 result was neutral (and the approach still sound)
+## Why our hybrid/rerank result was neutral (and the approach still sound)
 The literature reports large hybrid gains on real corpora, e.g. BM25+vector
 ≈ **91% recall@10** vs 78% dense-only / 65% sparse-only. Our neutral result
 (0.60 = 0.60) is a **corpus artifact**: 2 documents / 10 questions is too small
