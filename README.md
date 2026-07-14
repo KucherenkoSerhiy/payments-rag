@@ -3,12 +3,10 @@
 Ask the SEPA payment rulebooks in plain English and get a grounded answer with the
 **exact page cited**. One click opens that page in the PDF.
 
+[![CI](https://github.com/KucherenkoSerhiy/payments-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/KucherenkoSerhiy/payments-rag/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)
 ![Angular 20](https://img.shields.io/badge/Angular-20-dd0031.svg)
-<!-- After the first push, set OWNER to your GitHub username and uncomment:
-[![CI](https://github.com/OWNER/payments-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/payments-rag/actions/workflows/ci.yml)
--->
 
 ![Ask a question, get a cited answer with evidence](docs/screenshots/demo.gif)
 
