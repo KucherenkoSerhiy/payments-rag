@@ -28,3 +28,6 @@ data/
 
 # Private planning notes (not published)
 docs/ROADMAP.md
+
+# Writeups are published separately as articles
+docs/writeups/

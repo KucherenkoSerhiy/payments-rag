@@ -5,7 +5,7 @@
 ## Context
 ADR-0010 chose Streamlit for a minimal UI "to see retrieval." It over-delivered:
 we now have a three-view glass-box app (Ask / Evals / Usage + a Health panel) that
-is measured and observable (see `docs/writeups/ui-current-state-streamlit.md`). It
+is measured and observable. It
 was the right call for discovering what to build, and it even caught real bugs
 in-browser (the ~10s localhost DB hang, a cwd-relative path).
 
@@ -14,8 +14,8 @@ But three forces now point past it:
    hero, inline citation chips that link to evidence, a live multi-dependency
    Health view) needs a real frontend. Streamlit can't render it (we confirmed
    `st.navigation(position="top")` doesn't even produce a top bar here).
-2. **Cloud deploy (M8) needs an API layer anyway.** A FastAPI backend isn't extra
-   work relative to the roadmap; it's work M8 requires regardless.
+2. **A future cloud deploy needs an API layer anyway.** A FastAPI backend isn't
+   extra work; a hosted deployment requires an API layer regardless.
 3. **Skill fit.** The owner is a .NET/Angular engineer. Angular plays to existing
    strength for the presentation layer while Python stays the learning core.
 
@@ -35,7 +35,7 @@ parity, or kept only as an internal dev quick-view.
   better, and the API is reusable.
 
 ## Consequences / trade-offs
-- **+** An API layer decouples the core from any UI and is exactly what M8 needs.
+- **+** An API layer decouples the core from any UI and is exactly what a cloud deploy needs.
 - **+** The real UX becomes possible (inline citations, live health, top nav).
 - **+** Plays to the owner's strength; the mockups are a ready spec.
 - **−** More work than restyling Streamlit; two runtimes (Python API + Node/Angular).

@@ -53,7 +53,7 @@ def require_openai_key() -> str:
 # --- Vector store ---
 # Use 127.0.0.1, not "localhost", in DATABASE_URL (.env/env): on Windows localhost
 # resolves to IPv6 ::1 first, but the Docker port is IPv4-only, so a localhost
-# connect hangs ~10s. See docs/writeups/the-localhost-trap-windows-ipv6.md.
+# connect hangs ~10s.
 DATABASE_URL: str = os.environ.get(
     "DATABASE_URL", "postgresql://payments:payments@127.0.0.1:5433/payments_rag"
 )

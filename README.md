@@ -33,8 +33,8 @@ model (GPT‑4) so nothing marks its own homework.
   service) on demand and every 10 minutes.
 - **Clean architecture.** An Angular SPA over a FastAPI API over a small,
   framework-free Python core. The core doesn't know a UI exists ([ADR‑0017](docs/adr/0017-frontend-angular-fastapi.md)).
-- **A documented decision trail.** 17 ADRs plus writeups explain the *why* behind
-  every non-obvious choice ([`docs/adr/`](docs/adr/), [`docs/writeups/`](docs/writeups/)).
+- **A documented decision trail.** 17 ADRs explain the *why* behind every
+  non-obvious choice ([`docs/adr/`](docs/adr/)).
 
 ## Architecture
 
@@ -82,12 +82,21 @@ Quality gets a number. Against a hand-verified golden set (10 Q&A per track):
 The set is small on purpose (every item is hand-verified) and retrieval is the
 current bottleneck (the right page isn't always in the top‑k; see the
 [retrieval-quality playbook](docs/retrieval-quality-playbook.md)). The same numbers
-show live in the **Evals** view. Reproduce:
+show live in the **Evals** view.
+
+> **Why does the pass rate beat recall@5?** The judge grades answer *correctness*
+> against a reference, not whether the answer was grounded in the retrieved page.
+> So an answer can be right without the labelled page in context (from an adjacent
+> passage or the model's own knowledge). That makes recall@5 the more honest read
+> on retrieval quality; adding a faithfulness check would likely pull the pass rate
+> down toward it.
+
+Reproduce:
 
 ```bash
-uv run python -m evals.retrieval_eval     # recall@k over the golden set
-uv run python -m evals.answer_eval        # cross-model answer grading (a few paid calls)
-uv run pytest                             # unit + DB-integration tests
+python -m evals.retrieval_eval     # recall@k over the golden set
+python -m evals.answer_eval        # cross-model answer grading (a few paid calls)
+python -m pytest                   # unit + DB-integration tests
 ```
 
 ## Scope
@@ -95,7 +104,7 @@ uv run pytest                             # unit + DB-integration tests
 A **single, shared service over the public EPC rulebooks**: one deployment for
 everyone. It deliberately skips multi-user, auth, and scaling: the corpus is public
 and shared, so there is nothing to isolate. Those, plus a live cloud deploy, are
-scoped for later; see the [multi-user writeup](docs/writeups/going-public-shared-corpus-rag.md).
+scoped for later.
 Answers are currently retrieval-recall bound (the right page isn't always in the
 top‑k; see the [retrieval-quality playbook](docs/retrieval-quality-playbook.md)).
 
@@ -107,7 +116,7 @@ top‑k; see the [retrieval-quality playbook](docs/retrieval-quality-playbook.md
 | `api/` | FastAPI backend (thin HTTP layer over the core) |
 | `frontend/` | Angular SPA (the four views) |
 | `evals/` | Golden sets + retrieval/answer eval harnesses |
-| `docs/` | ADRs, writeups, the retrieval playbook, glossary |
+| `docs/` | ADRs, the retrieval playbook, glossary |
 | `infra/` | `docker-compose.yml` + `init.sql` (Postgres + pgvector) |
 
 The decision history lives in [`docs/adr/`](docs/adr/): the "why" behind most choices.

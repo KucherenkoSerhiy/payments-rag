@@ -46,7 +46,7 @@ evals/       retrieval + answer eval harnesses + golden sets
 infra/       docker-compose (Postgres + pgvector) + init.sql (schema + HNSW + FTS)
 corpus/      source PDFs live here (raw/ + processed/; the PDFs are gitignored)
 tests/       unit + DB / retrieval integration tests
-docs/        ADRs, writeups, glossary, this file
+docs/        ADRs, glossary, this file
 ```
 
 Dependencies point inward: `cli`/`api` → `orchestrator` → `indexing`/`retrieval` →
@@ -146,8 +146,7 @@ sequenceDiagram
 - Clean inward-pointing layering; the CLI and the FastAPI API drive one shared core.
 - Pure logic (`chunker`, `textprep`, `fusion`) is separated from I/O and unit-tested.
 - External calls have per-attempt timeouts and bounded retries (`config.API_*`),
-  added after the localhost/IPv6 hang made the cost of *not* having them concrete
-  (see [the-localhost-trap writeup](writeups/the-localhost-trap-windows-ipv6.md)).
+  added after the localhost/IPv6 hang made the cost of *not* having them concrete.
 - Answers are generated *and measured*: a cross-model LLM-as-judge grades against a
   hand-verified golden set (recall@k for retrieval, correctness/faithfulness for
   answers), so quality is a number, not a vibe.
@@ -162,5 +161,4 @@ sequenceDiagram
 3. **`nearest` searches the whole table**, with no per-document filter yet ("search only
    the SCT Inst rulebook"). Fine at this corpus size.
 4. **Single shared service over a public corpus**, so no auth, multi-tenancy, or
-   rate-limiting. Deliberate; see the
-   [going-public writeup](writeups/going-public-shared-corpus-rag.md).
+   rate-limiting. Deliberate: a shared public corpus has nothing to isolate.
