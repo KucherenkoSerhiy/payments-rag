@@ -9,7 +9,7 @@ text, so scoring needs to tolerate paraphrase while still catching factual error
 ## Decision
 Score with an LLM-as-judge, and require the judge to be a **different model** from
 the production responder (e.g. Haiku produces, GPT-4 judges). The judge receives
-`(question, expected, actual, citations)` and returns a 0-100 grade + critique.
+`(question, expected, actual)` and returns a 0-100 grade + critique.
 
 ## Alternatives
 - **Exact-text match**: fails on paraphrase.
