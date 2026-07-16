@@ -24,9 +24,9 @@ user's wording. Two compounding causes:
 
 1. **Query ↔ page vocabulary gap.** A casual question embeds far from formal spec
    prose.
-2. **Coarse per-page chunks (ADR-0008).** A page's embedding is an *average* of
-   everything on it, so a single fact competes with the whole page and ranks on
-   broad similarity rather than fact similarity.
+2. **Coarse chunks (ADR-0008: page-bounded, ~300 words).** A chunk's embedding is
+   an *average* of everything in it, so a single fact competes with the rest of
+   its chunk and ranks on broad similarity rather than fact similarity.
 
 **It is a ranking / matching problem, not coverage.** Reranking and hybrid only
 *reorder what was fetched*; they cannot recover signal that was averaged away at
@@ -40,7 +40,7 @@ index time.
    fewer failed retrievals (embeddings + BM25), **67%** with reranking. Attacks
    *both* causes, and it's on-brand for our stack. Cost: a one-time re-index (an
    LLM call per chunk).
-2. **Small-to-big / sentence-window chunking.** Stop embedding whole pages. Embed
+2. **Small-to-big / sentence-window chunking.** Stop embedding coarse chunks. Embed
    sentences, retrieve those, feed the LLM the surrounding parent. Fixes
    dilution at the root, and *reconciles with why we chose per-page* (citation
    accuracy): retrieve small for precision, cite the parent page for verifiability.
