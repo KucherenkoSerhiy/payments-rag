@@ -23,8 +23,9 @@ relitigate a settled call.
 | [0010](0010-streamlit-ui.md) | UI: minimal Streamlit | Accepted (superseded by 0017) |
 | [0011](0011-repo-layout.md) | Code in its own repository | Accepted |
 | [0012](0012-golden-set-in-repo.md) | Golden eval set: YAML in repo | Accepted |
-| [0013](0013-deploy-docker-local.md) | Deploy: Docker, local only | Accepted |
+| [0013](0013-deploy-docker-local.md) | Deploy: Docker, local only | Accepted (superseded by 0018) |
 | [0014](0014-improve-retrieval-rerank-hybrid.md) | Improve retrieval: rerank / hybrid | Accepted (vector default; hybrid optional) |
 | [0015](0015-package-by-concern-llm-adapter.md) | Package by concern; extract LLM adapter | Accepted |
 | [0016](0016-reranker-llm-cross-encoder-eval-only.md) | Reranking: LLM-as-cross-encoder, eval-only (Track B) | Accepted (recall 0.60→0.70; not in product path) |
 | [0017](0017-frontend-angular-fastapi.md) | Frontend: Angular SPA + FastAPI backend | Accepted (supersedes 0010) |
+| [0018](0018-cloud-deploy-fly-neon.md) | Public cloud deploy: Fly.io + Neon, no auth | Accepted (supersedes 0013) |
