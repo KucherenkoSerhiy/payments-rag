@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 
-const BASE = 'http://127.0.0.1:8000';
+// Dev: Angular serves on 4200, the API on 8000. Production build: the FastAPI
+// container serves the SPA itself, so same-origin relative URLs are enough.
+const BASE = isDevMode() ? 'http://127.0.0.1:8000' : '';
 
 export interface Citation { chunk_id: number; source: string; page: number | null; text: string; }
 export interface AskResponse {
