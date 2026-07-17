@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api import guard
 from evals import retrieval_eval
@@ -185,7 +186,8 @@ class _SpaStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope):
         try:
             return await super().get_response(path, scope)
-        except HTTPException as exc:
+        except StarletteHTTPException as exc:
+            # Starlette raises its own HTTPException here, not FastAPI's subclass.
             if exc.status_code == 404:
                 return await super().get_response("index.html", scope)
             raise
