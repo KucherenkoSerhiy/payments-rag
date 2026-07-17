@@ -59,6 +59,15 @@ DATABASE_URL: str = os.environ.get(
 )
 DB_CONNECT_TIMEOUT: int = 10  # seconds; fail fast instead of hanging on a bad route
 
+# --- Wallet guard (public deploy) ---
+# Article 06: "anyone can run up the LLM bill from a for-loop". These bounds are
+# enforced by api/guard.py on the paid endpoints. Days roll over at UTC midnight
+# (the DB server's CURRENT_DATE).
+DAILY_BUDGET_USD: float = float(os.environ.get("DAILY_BUDGET_USD", "0.30"))
+RATE_LIMIT_ASK_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_ASK_PER_HOUR", "20"))
+RATE_LIMIT_EVALS_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_EVALS_PER_HOUR", "6"))
+MAX_QUESTION_CHARS: int = int(os.environ.get("MAX_QUESTION_CHARS", "500"))
+
 # --- API resilience (both the LLM and embedding clients) ---
 # The SDKs already retry 429/5xx with backoff; it's the default 10-minute timeout
 # that lets a wedged connection hang for minutes. A short per-attempt timeout
