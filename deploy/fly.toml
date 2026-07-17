@@ -1,0 +1,40 @@
+# Fly.io config for the public demo (ADR-0018).
+# Deploy from the repo root:  fly deploy -c deploy/fly.toml
+# Secrets (set once, never in this file):
+#   fly secrets set ANTHROPIC_API_KEY=... OPENAI_API_KEY=... DATABASE_URL=...
+
+app = "payments-rag"
+primary_region = "mad"  # Madrid; pick any region near the Neon project
+
+[build]
+  dockerfile = "Dockerfile.prod"  # resolved relative to this file
+
+[env]
+  LLM_MODEL = "claude-haiku-4-5"            # ADR-0005
+  EMBED_MODEL = "text-embedding-3-small"    # ADR-0003, pinned
+  DAILY_BUDGET_USD = "0.30"
+  RATE_LIMIT_ASK_PER_HOUR = "20"
+  RATE_LIMIT_EVALS_PER_HOUR = "6"
+  MAX_QUESTION_CHARS = "500"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Scale to zero when idle: at ~10 visits/day the machine sleeps most of the
+  # time and the bill stays near the floor. Cold start is a few seconds.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  # Liveness only: /healthz costs nothing. Do NOT point this at /health, whose
+  # checks make paid 1-token LLM pings.
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

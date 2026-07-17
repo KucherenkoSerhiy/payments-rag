@@ -1,0 +1,18 @@
+# Build context filter for deploy/Dockerfile.prod.
+# NOTE: corpus/raw PDFs stay IN the context on purpose (bundled for /source
+# deep links); .env stays OUT so keys can never end up in an image layer.
+.git
+.env
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache
+data/
+docs/
+tests/
+infra/
+frontend/node_modules
+frontend/dist
+frontend/.angular
+smoke_test.py

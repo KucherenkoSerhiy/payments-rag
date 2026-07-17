@@ -1,0 +1,40 @@
+# Production image for the public deploy (ADR-0018): one container serving the
+# FastAPI backend AND the built Angular SPA on the same origin, port 8080.
+#
+# Build from the repo root so both frontend/ and the Python tree are in context:
+#     docker build -f deploy/Dockerfile.prod -t payments-rag .
+#
+# corpus/raw PDFs are gitignored but must be present locally: the image bundles
+# them so /source/{file} can deep-link to rulebook pages.
+
+# --- Stage 1: build the Angular SPA ---
+FROM node:24-slim AS spa
+WORKDIR /build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
+
+# --- Stage 2: Python runtime ---
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+WORKDIR /app
+
+# Dependencies first, so code edits don't bust this layer.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+# The app: API layer, core, evals (the /evals endpoints import them), corpus.
+COPY api/ api/
+COPY payments_rag/ payments_rag/
+COPY evals/ evals/
+COPY corpus/ corpus/
+COPY --from=spa /build/dist/frontend/browser frontend/dist/frontend/browser
+
+# Non-root; data/ is created at runtime for the query log (ephemeral by design,
+# see deploy/architecture.md).
+RUN useradd --create-home appuser && chown -R appuser /app
+USER appuser
+
+EXPOSE 8080
+CMD ["/app/.venv/bin/uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
