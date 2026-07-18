@@ -7,9 +7,11 @@ app = "payments-rag"
 primary_region = "mad"  # Madrid; pick any region near the Neon project
 
 [build]
-  # flyctl resolves this against the working directory (the build context),
-  # not this file's location - hence the deploy/ prefix. Deploy from repo root.
-  dockerfile = "deploy/Dockerfile.prod"
+  # flyctl (observed on v0.4.71) resolves this against THIS FILE's directory,
+  # while the build context stays the working directory - so: bare filename
+  # here, and deploy from the repo root. If a flyctl version resolves it
+  # differently, override with: fly deploy -c deploy/fly.toml --dockerfile deploy/Dockerfile.prod
+  dockerfile = "Dockerfile.prod"
 
 [env]
   LLM_MODEL = "claude-haiku-4-5"            # ADR-0005
