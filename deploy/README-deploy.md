@@ -34,6 +34,10 @@ Background and trade-offs live in [architecture.md](architecture.md) and
 
 ## 2. Apply the schema and seed the chunks
 
+Shortcut for steps 2 and 3: `./deploy/owner-setup.sh` prompts for the
+connection string and keys and runs everything below (except the deploy
+itself). The manual commands follow for anyone who prefers them.
+
 From the repo root, with the local docker DB running (`make db`):
 
 ```bash
