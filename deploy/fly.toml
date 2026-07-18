@@ -4,7 +4,7 @@
 #   fly secrets set ANTHROPIC_API_KEY=... OPENAI_API_KEY=... DATABASE_URL=...
 
 app = "payments-rag"
-primary_region = "mad"  # Madrid; pick any region near the Neon project
+primary_region = "cdg"  # Paris; mad (Madrid) is deprecated for new resources
 
 [build]
   # flyctl (observed on v0.4.71) resolves this against THIS FILE's directory,
