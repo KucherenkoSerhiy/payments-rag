@@ -31,6 +31,9 @@ case "$MODE" in
     ;;
   copy)
     echo "dumping chunks from local $CONTAINER and restoring to Neon..."
+    # TRUNCATE first so a re-run (e.g. after a half-finished attempt) is
+    # idempotent instead of dying on duplicate ids mid-stream.
+    docker exec "$CONTAINER" psql "$URL" -v ON_ERROR_STOP=1 -c "TRUNCATE chunks;"
     docker exec "$CONTAINER" pg_dump -U payments -d payments_rag \
         --data-only --table=chunks \
       | docker exec -i "$CONTAINER" psql "$URL" -v ON_ERROR_STOP=1
@@ -39,7 +42,9 @@ case "$MODE" in
     echo "copy done"
     ;;
   index)
-    DATABASE_URL="$URL" python -m payments_rag.cli index --reset
+    # uv run resolves the project venv; bare `python` may be a system one
+    # without the project's dependencies. Needs OPENAI_API_KEY in the env.
+    DATABASE_URL="$URL" uv run python -m payments_rag.cli index --reset
     ;;
   verify)
     docker exec "$CONTAINER" psql "$URL" -t \

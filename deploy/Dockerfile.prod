@@ -24,11 +24,14 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
-# The app: API layer, core, evals (the /evals endpoints import them), corpus.
+# Corpus PDFs before the code: they are multi-MB and essentially never change,
+# so a code edit shouldn't invalidate (and re-upload) their layer.
+COPY corpus/ corpus/
+
+# The app: API layer, core, evals (the /evals endpoints import them).
 COPY api/ api/
 COPY payments_rag/ payments_rag/
 COPY evals/ evals/
-COPY corpus/ corpus/
 COPY --from=spa /build/dist/frontend/browser frontend/dist/frontend/browser
 
 # Non-root; data/ is created at runtime for the query log (ephemeral by design,

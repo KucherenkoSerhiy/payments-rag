@@ -24,7 +24,8 @@ CREATE INDEX IF NOT EXISTS chunks_text_fts_idx
     ON chunks USING gin (to_tsvector('english', text));
 
 -- Wallet guard spend ledger (api/guard.py): one row per UTC day. The app also
--- creates this at startup; kept here so a fresh DB is complete from init.
+-- self-heals a missing table on first use; kept here so a fresh DB is
+-- complete from init. Keep both definitions in sync.
 CREATE TABLE IF NOT EXISTS wallet_guard (
     day       DATE           PRIMARY KEY,
     spent_usd NUMERIC(10, 6) NOT NULL DEFAULT 0

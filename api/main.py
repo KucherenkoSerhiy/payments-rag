@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -33,40 +31,17 @@ from payments_rag.orchestrator import answer
 
 logger = logging.getLogger(__name__)
 
-_DATA = Path(__file__).resolve().parent.parent / "data"
-_CORPUS = Path(__file__).resolve().parent.parent / "corpus" / "raw"
-_SPA_DIST = Path(
-    os.environ.get(
-        "SPA_DIST",
-        Path(__file__).resolve().parent.parent / "frontend" / "dist" / "frontend" / "browser",
-    )
-)
+_ROOT = Path(__file__).resolve().parent.parent
+_DATA = _ROOT / "data"
+_CORPUS = _ROOT / "corpus" / "raw"
+_SPA_DIST = _ROOT / "frontend" / "dist" / "frontend" / "browser"
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Create the wallet_guard spend ledger if missing. Tolerate a DB that isn't
-    # up yet: init.sql also creates the table, and /ask fails loudly anyway.
-    try:
-        with db.connect() as conn:
-            guard.ensure_table(conn)
-    except Exception as exc:
-        logger.warning("wallet_guard table check skipped (DB unreachable): %s", exc)
-    yield
-
-
-app = FastAPI(title="Payments RAG API", version="0.1.0", lifespan=lifespan)
-# In production the SPA is served from this same origin, so CORS stays closed
-# unless CORS_ORIGINS says otherwise; the default covers the Angular dev server.
-_cors_origins = [
-    o.strip()
-    for o in os.environ.get(
-        "CORS_ORIGINS", "http://localhost:4200,http://127.0.0.1:4200"
-    ).split(",")
-    if o.strip()
-]
+app = FastAPI(title="Payments RAG API", version="0.1.0")
 app.add_middleware(
-    CORSMiddleware, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"]
+    CORSMiddleware,
+    allow_origins=config.CORS_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -76,11 +51,15 @@ class AskRequest(BaseModel):
 
 
 @app.post("/ask")
-def ask(req: AskRequest, _: None = Depends(guard.rate_limit_ask)) -> dict:
+def ask(req: AskRequest, _: None = Depends(guard.ask_limiter)) -> dict:
     with db.connect() as conn:
         guard.check_budget(conn)
         result = answer(conn, req.question, k=req.k)
-        guard.add_spend(conn, result.cost_usd)
+        try:
+            guard.add_spend(conn, result.cost_usd)
+        except Exception as exc:
+            # The answer is already paid for; a ledger hiccup must not 500 it.
+            logger.warning("spend not recorded (%.6f USD): %s", result.cost_usd, exc)
     query_log.log_query(
         req.question,
         mode="vector",
@@ -112,31 +91,26 @@ def healthz() -> dict:
 
 
 @app.get("/health")
-def health_all() -> dict:
-    _budget_gate()
-    checks = health.check_all()
-    _charge(guard.HEALTH_RUN_EST_USD)
-    return {"checks": checks}
+def health_all(_: None = Depends(guard.health_limiter)) -> dict:
+    guard.charge_flat(config.HEALTH_RUN_EST_USD)
+    return {"checks": health.check_all()}
 
 
 @app.post("/health/{name}")
-def health_one(name: str) -> dict:
+def health_one(name: str, _: None = Depends(guard.health_limiter)) -> dict:
     if name not in health.NAMES:
         raise HTTPException(404, f"unknown dependency: {name} (try {health.NAMES})")
-    if name in ("responder", "judge", "embeddings"):  # the paid pings
-        _budget_gate()
-        _charge(guard.HEALTH_RUN_EST_USD / 3)
+    if name in health.PAID_NAMES:
+        guard.charge_flat(config.HEALTH_RUN_EST_USD / len(health.PAID_NAMES))
     return health.check(name)
 
 
 @app.post("/evals/retrieval")
 def evals_retrieval(
-    mode: str = "vector", k: int = 5, _: None = Depends(guard.rate_limit_evals)
+    mode: str = "vector", k: int = 5, _: None = Depends(guard.evals_limiter)
 ) -> dict:
-    _budget_gate()
-    result = retrieval_eval.evaluate(k=k, hybrid=(mode == "hybrid"))
-    _charge(guard.EVAL_RUN_EST_USD)
-    return result
+    guard.charge_flat(config.EVAL_RUN_EST_USD)
+    return retrieval_eval.evaluate(k=k, hybrid=(mode == "hybrid"))
 
 
 @app.get("/evals/answer")
@@ -167,17 +141,6 @@ def source(filename: str):
     if not path.exists() or path.suffix.lower() != ".pdf":
         raise HTTPException(404, f"not found: {filename}")
     return FileResponse(path, media_type="application/pdf")
-
-
-def _budget_gate() -> None:
-    """Enforce the daily cap for endpoints that make paid calls outside /ask."""
-    with db.connect() as conn:
-        guard.check_budget(conn)
-
-
-def _charge(usd: float) -> None:
-    with db.connect() as conn:
-        guard.add_spend(conn, usd)
 
 
 class _SpaStaticFiles(StaticFiles):

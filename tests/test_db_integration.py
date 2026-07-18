@@ -6,21 +6,7 @@ no database simply skips. Strictly read-only; it never mutates the corpus.
 
 from __future__ import annotations
 
-import pytest
-
-from payments_rag.adapters import db
-
-
-@pytest.fixture
-def conn():
-    try:
-        c = db.connect()
-    except Exception as exc:  # no DB reachable (e.g. a fresh clone)
-        pytest.skip(f"no database available: {exc}")
-    try:
-        yield c
-    finally:
-        c.close()
+# The `conn` fixture (live DB or skip) lives in tests/conftest.py.
 
 
 def test_connectivity(conn):

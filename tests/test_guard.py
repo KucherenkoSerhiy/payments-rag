@@ -1,8 +1,8 @@
 """Tests for the wallet guard: rate limiter, input bounds, budget cap.
 
 The limiter and request-validation tests are pure (no DB, no API keys). The
-ledger tests need the live Postgres from docker-compose, same as
-test_db_integration, and roll back so they never pollute today's real spend.
+ledger tests use the shared `conn` fixture (tests/conftest.py): they need the
+docker-compose Postgres, skip without it, and roll back all test spend.
 """
 
 from __future__ import annotations
@@ -14,8 +14,17 @@ from fastapi.testclient import TestClient
 from api import guard
 from api.main import app
 from payments_rag import config
-from payments_rag.adapters import db
 from payments_rag.orchestrator import AnswerResult
+
+
+@pytest.fixture(autouse=True)
+def _fresh_limiters():
+    """The module-level limiters are process-global; don't leak hits across tests."""
+    guard.ask_limiter._hits.clear()
+    guard.evals_limiter._hits.clear()
+    guard.health_limiter._hits.clear()
+    yield
+    app.dependency_overrides.clear()
 
 
 class FakeClock:
@@ -45,6 +54,18 @@ def test_rate_limiter_window_slides() -> None:
     assert limiter.retry_after("ip") is None
 
 
+def test_client_ip_ignores_x_forwarded_for() -> None:
+    """XFF is client-supplied; trusting it would let anyone dodge the limiter."""
+
+    class Req:
+        headers = {"x-forwarded-for": "6.6.6.6"}
+
+        class client:
+            host = "10.0.0.1"
+
+    assert guard.client_ip(Req()) == "10.0.0.1"
+
+
 def test_ask_rejects_overlong_question() -> None:
     client = TestClient(app)
     too_long = "x" * (config.MAX_QUESTION_CHARS + 1)
@@ -57,17 +78,10 @@ def test_ask_rejects_out_of_range_k() -> None:
 
 
 def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
-    monkeypatch.setattr("api.main.guard.ask_limiter", guard.RateLimiter(limit=1, window_s=3600))
+    # Depends(guard.ask_limiter) binds the instance at import; override it here.
+    app.dependency_overrides[guard.ask_limiter] = guard.RateLimiter(limit=1)
     # no paid calls, no DB: stub the answer path end to end
-    result = AnswerResult(
-        answer="stub",
-        citations=[],
-        retrieval_s=0.0,
-        generation_s=0.0,
-        cost_usd=0.0,
-        input_tokens=1,
-        output_tokens=1,
-    )
+    result = AnswerResult(answer="stub", citations=[])
 
     class FakeConn:
         def __enter__(self):
@@ -89,21 +103,7 @@ def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
     assert "Retry-After" in blocked.headers
 
 
-@pytest.fixture
-def conn():
-    try:
-        c = db.connect()
-    except Exception as exc:  # no DB reachable (e.g. a fresh clone)
-        pytest.skip(f"no database available: {exc}")
-    try:
-        yield c
-    finally:
-        c.rollback()  # never persist test spend into today's real ledger
-        c.close()
-
-
 def test_budget_ledger_accumulates_and_trips(conn, monkeypatch) -> None:
-    """Needs the docker-compose Postgres; the fixture rolls back all test spend."""
     monkeypatch.setattr(config, "DAILY_BUDGET_USD", 0.01)
     guard.ensure_table(conn)
     base = guard.spent_today(conn)
@@ -114,3 +114,16 @@ def test_budget_ledger_accumulates_and_trips(conn, monkeypatch) -> None:
     with pytest.raises(HTTPException) as exc:
         guard.check_budget(conn)
     assert exc.value.status_code == 429
+
+
+def test_ledger_self_heals_missing_table(conn) -> None:
+    """Databases created before wallet_guard existed must not 500 /ask forever.
+
+    The in-transaction DROP makes the first query raise UndefinedTable; the
+    guard's recovery (rollback + ensure_table + retry) must absorb it. The
+    rollback also undoes the DROP here, so only recovery is asserted, not an
+    empty ledger.
+    """
+    conn.execute("DROP TABLE wallet_guard")
+    assert guard.spent_today(conn) >= 0.0  # recovered, no exception escaped
+    guard.add_spend(conn, 0.001)  # ledger writable after recovery

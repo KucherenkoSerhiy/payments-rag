@@ -93,6 +93,9 @@ _CHECKS = {
     "service": check_service,
 }
 NAMES = list(_CHECKS)
+# The checks that make paid API calls (1-token / short-string pings). The API
+# layer budget-gates exactly these; keep in sync when adding a check.
+PAID_NAMES = ("responder", "judge", "embeddings")
 
 
 def check(name: str) -> dict:

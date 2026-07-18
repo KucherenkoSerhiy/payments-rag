@@ -67,6 +67,20 @@ DAILY_BUDGET_USD: float = float(os.environ.get("DAILY_BUDGET_USD", "0.30"))
 RATE_LIMIT_ASK_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_ASK_PER_HOUR", "20"))
 RATE_LIMIT_EVALS_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_EVALS_PER_HOUR", "6"))
 MAX_QUESTION_CHARS: int = int(os.environ.get("MAX_QUESTION_CHARS", "500"))
+# Flat per-run charges for paid endpoints that don't measure their own cost
+# (/ask records its real cost). Deliberately high so the cap trips early.
+EVAL_RUN_EST_USD: float = 0.002  # one embedding per golden-set question
+HEALTH_RUN_EST_USD: float = 0.001  # the paid pings in health.PAID_NAMES
+
+# CORS: in production the SPA is served from the API's own origin, so this
+# stays closed unless overridden; the default covers the Angular dev server.
+CORS_ORIGINS: list[str] = [
+    o.strip()
+    for o in os.environ.get(
+        "CORS_ORIGINS", "http://localhost:4200,http://127.0.0.1:4200"
+    ).split(",")
+    if o.strip()
+]
 
 # --- API resilience (both the LLM and embedding clients) ---
 # The SDKs already retry 429/5xx with backoff; it's the default 10-minute timeout
