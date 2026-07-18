@@ -89,17 +89,28 @@ def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
     assert "Retry-After" in blocked.headers
 
 
-def test_budget_ledger_accumulates_and_trips(monkeypatch) -> None:
-    """Needs the docker-compose Postgres; rolls back, so today's ledger is untouched."""
+@pytest.fixture
+def conn():
+    try:
+        c = db.connect()
+    except Exception as exc:  # no DB reachable (e.g. a fresh clone)
+        pytest.skip(f"no database available: {exc}")
+    try:
+        yield c
+    finally:
+        c.rollback()  # never persist test spend into today's real ledger
+        c.close()
+
+
+def test_budget_ledger_accumulates_and_trips(conn, monkeypatch) -> None:
+    """Needs the docker-compose Postgres; the fixture rolls back all test spend."""
     monkeypatch.setattr(config, "DAILY_BUDGET_USD", 0.01)
-    with db.connect() as conn:
-        guard.ensure_table(conn)
-        base = guard.spent_today(conn)
-        guard.add_spend(conn, 0.004)
-        guard.add_spend(conn, 0.004)
-        assert abs(guard.spent_today(conn) - (base + 0.008)) < 1e-9
-        guard.add_spend(conn, 0.004)
-        with pytest.raises(HTTPException) as exc:
-            guard.check_budget(conn)
-        assert exc.value.status_code == 429
-        conn.rollback()
+    guard.ensure_table(conn)
+    base = guard.spent_today(conn)
+    guard.add_spend(conn, 0.004)
+    guard.add_spend(conn, 0.004)
+    assert abs(guard.spent_today(conn) - (base + 0.008)) < 1e-9
+    guard.add_spend(conn, 0.004)
+    with pytest.raises(HTTPException) as exc:
+        guard.check_budget(conn)
+    assert exc.value.status_code == 429

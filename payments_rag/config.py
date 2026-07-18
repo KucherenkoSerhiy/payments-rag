@@ -59,10 +59,10 @@ DATABASE_URL: str = os.environ.get(
 )
 DB_CONNECT_TIMEOUT: int = 10  # seconds; fail fast instead of hanging on a bad route
 
-# --- Wallet guard (public deploy) ---
-# Article 06: "anyone can run up the LLM bill from a for-loop". These bounds are
-# enforced by api/guard.py on the paid endpoints. Days roll over at UTC midnight
-# (the DB server's CURRENT_DATE).
+# --- Wallet guard (public deploy, ADR-0018) ---
+# The app is public with no accounts, so these bounds are what stands between
+# the internet and the API bill. Enforced by api/guard.py on the paid
+# endpoints. Days roll over at UTC midnight (the DB server's CURRENT_DATE).
 DAILY_BUDGET_USD: float = float(os.environ.get("DAILY_BUDGET_USD", "0.30"))
 RATE_LIMIT_ASK_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_ASK_PER_HOUR", "20"))
 RATE_LIMIT_EVALS_PER_HOUR: int = int(os.environ.get("RATE_LIMIT_EVALS_PER_HOUR", "6"))

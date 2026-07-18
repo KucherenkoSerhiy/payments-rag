@@ -1,8 +1,8 @@
 """Wallet guard for the public deploy: rate limit + global daily budget cap.
 
-Article 06: "anyone can run up the LLM bill from a for-loop" - this module is
-what prevents that. The app is public and has no accounts (a deliberate deploy
-choice, see ADR-0018), so the guards work without knowing who anyone is:
+Anyone can run up the LLM bill from a for-loop; this module is what prevents
+that (ADR-0018). The app is public and has no accounts (a deliberate deploy
+choice, same ADR), so the guards work without knowing who anyone is:
 
 - Per-IP sliding-window rate limits on the paid endpoints. In-memory on
   purpose: state resets on restart, which under-counts briefly, and the budget

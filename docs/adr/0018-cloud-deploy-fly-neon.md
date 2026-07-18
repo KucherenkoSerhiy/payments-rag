@@ -11,10 +11,13 @@ URL and ask a question is worth more than one who has to clone, get API keys,
 and run docker-compose. The owner asked for a public demo anyone can try,
 capped at $20/month all-in.
 
-Article 06 already worked out what a public, no-login deploy of a shared-corpus
-RAG needs: access control on admin views, abuse and cost guards, privacy
-hygiene. This deploy takes the abuse-and-cost part in full and deliberately
-drops the auth part.
+"Multi-user" for this app decomposes into four separate questions with
+different answers: data isolation (does not apply, the corpus is shared and
+public with no upload path), access control on the admin views, privacy of
+the query log, and abuse/cost. So a public, no-login deploy needs three
+things, none of which is an accounts system: gate or accept exposure of the
+admin views, keep the query log hygienic, and guard the wallet. This deploy
+takes the abuse-and-cost part in full and deliberately drops the gating part.
 
 ## Decision
 
@@ -26,8 +29,8 @@ drops the auth part.
 - **Cloudflare in front, only if a custom domain shows up.** The `.fly.dev`
   URL ships first; the edge layer is an optimization, not a dependency.
 - **Everything is public, including Evals, Usage, and Health.** No accounts,
-  no admin token. This deviates from article 06's "gate the admin views" on
-  the owner's explicit call: it is a portfolio demo, the views are part of
+  no admin token. This drops the "gate the admin views" recommendation above
+  on the owner's explicit call: it is a portfolio demo, the views are part of
   what is being shown off, and simplicity wins. The privacy consequence is
   contained by the Usage tab only ever showing the ephemeral in-container
   query log (it resets on every deploy), but questions still travel to
@@ -48,7 +51,7 @@ drops the auth part.
 - **Supabase instead of Neon.** Also has pgvector on a free tier. Neon's
   scale-to-zero Postgres and plain connection string fit a single-table app
   better; Supabase brings an app platform this project doesn't need.
-- **Add auth for the admin tabs** (article 06's original position). Rejected
+- **Add auth for the admin tabs** (the natural first instinct). Rejected
   by the owner for this deploy: every gate costs demo-ability, and there is
   nothing behind the tabs worth a login while the query log is ephemeral.
 
