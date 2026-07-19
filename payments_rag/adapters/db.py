@@ -110,6 +110,68 @@ def source_counts(conn: psycopg.Connection) -> list[tuple[str, int]]:
     return [(r[0], int(r[1])) for r in rows]
 
 
+# --- Wallet guard ledger (ADR-0018) ---
+# One row per UTC day (the server's CURRENT_DATE). The API layer turns this
+# state into 429s (api/guard.py); this module only owns the persistence, per
+# ADR-0015: SQL lives in the adapter, HTTP semantics stay out of the core.
+
+
+def wallet_ensure_table(conn: psycopg.Connection) -> None:
+    """Create the spend ledger if missing. Idempotent; callers own the commit.
+
+    The same DDL lives in infra/init.sql for fresh databases; this is the
+    self-heal path for databases created before the table existed.
+    """
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS wallet_guard (
+            day       DATE           PRIMARY KEY,
+            spent_usd NUMERIC(10, 6) NOT NULL DEFAULT 0
+        )
+        """
+    )
+
+
+def _with_wallet_table(conn: psycopg.Connection, fn):
+    """Run fn; on UndefinedTable, roll back, create the ledger, retry once.
+
+    The rollback discards the caller's uncommitted work, so wallet calls must
+    come FIRST in a request's transaction (they do: gate before paid work).
+    """
+    try:
+        return fn()
+    except psycopg.errors.UndefinedTable:
+        conn.rollback()
+        wallet_ensure_table(conn)
+        return fn()
+
+
+def wallet_spent_today(conn: psycopg.Connection) -> float:
+    def query():
+        return conn.execute(
+            "SELECT spent_usd FROM wallet_guard WHERE day = CURRENT_DATE"
+        ).fetchone()
+
+    row = _with_wallet_table(conn, query)
+    return float(row[0]) if row else 0.0
+
+
+def wallet_add_spend(conn: psycopg.Connection, usd: float) -> None:
+    """Add to today's ledger row. Callers own the commit (or rollback in tests)."""
+
+    def upsert():
+        conn.execute(
+            """
+            INSERT INTO wallet_guard (day, spent_usd) VALUES (CURRENT_DATE, %s)
+            ON CONFLICT (day) DO UPDATE
+                SET spent_usd = wallet_guard.spent_usd + EXCLUDED.spent_usd
+            """,
+            (usd,),
+        )
+
+    _with_wallet_table(conn, upsert)
+
+
 def keyword_search(
     conn: psycopg.Connection, query_text: str, *, k: int = 20
 ) -> list[tuple[int, str, str, int | None, float]]:

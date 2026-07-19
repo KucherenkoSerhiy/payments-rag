@@ -5,9 +5,8 @@
 The core (orchestrator, retrieval, evals, query_log, health) is unchanged; this
 is a thin HTTP layer over it. Interactive docs at /docs.
 
-For the public deploy (ADR-0018) this layer also carries the wallet guard
-(api/guard.py) and serves the built Angular SPA when frontend/dist exists, so
-one container hosts both the API and the UI on the same origin.
+For the public deploy (ADR-0018) requests pass the wallet guard (api/guard.py)
+and the built Angular SPA is served from this same origin (api/spa.py).
 """
 
 from __future__ import annotations
@@ -19,11 +18,9 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from api import guard
+from api import guard, spa
 from evals import retrieval_eval
 from payments_rag import config, health, query_log
 from payments_rag.adapters import db
@@ -34,7 +31,6 @@ logger = logging.getLogger(__name__)
 _ROOT = Path(__file__).resolve().parent.parent
 _DATA = _ROOT / "data"
 _CORPUS = _ROOT / "corpus" / "raw"
-_SPA_DIST = _ROOT / "frontend" / "dist" / "frontend" / "browser"
 
 app = FastAPI(title="Payments RAG API", version="0.1.0")
 app.add_middleware(
@@ -56,7 +52,7 @@ def ask(req: AskRequest, _: None = Depends(guard.ask_limiter)) -> dict:
         guard.check_budget(conn)
         result = answer(conn, req.question, k=req.k)
         try:
-            guard.add_spend(conn, result.cost_usd)
+            db.wallet_add_spend(conn, result.cost_usd)
         except Exception as exc:
             # The answer is already paid for; a ledger hiccup must not 500 it.
             logger.warning("spend not recorded (%.6f USD): %s", result.cost_usd, exc)
@@ -143,19 +139,4 @@ def source(filename: str):
     return FileResponse(path, media_type="application/pdf")
 
 
-class _SpaStaticFiles(StaticFiles):
-    """Static files with an index.html fallback so SPA routes survive a refresh."""
-
-    async def get_response(self, path: str, scope):
-        try:
-            return await super().get_response(path, scope)
-        except StarletteHTTPException as exc:
-            # Starlette raises its own HTTPException here, not FastAPI's subclass.
-            if exc.status_code == 404:
-                return await super().get_response("index.html", scope)
-            raise
-
-
-# Mounted last so every API route above wins; only unmatched paths hit the SPA.
-if _SPA_DIST.is_dir():
-    app.mount("/", _SpaStaticFiles(directory=_SPA_DIST, html=True), name="spa")
+spa.mount_spa(app)

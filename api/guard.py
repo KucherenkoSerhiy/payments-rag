@@ -8,14 +8,17 @@ choice, same ADR), so the guards work without knowing who anyone is:
   purpose: state resets on restart, which under-counts briefly, and the budget
   cap below is the durable backstop.
 - A global daily budget cap on paid API spend, persisted in the wallet_guard
-  table so it survives restarts and redeploys. Once the day's spend reaches
-  DAILY_BUDGET_USD every paid endpoint returns 429 until UTC midnight.
+  table (payments_rag.adapters.db, wallet_* functions) so it survives restarts
+  and redeploys. Once the day's spend reaches DAILY_BUDGET_USD every paid
+  endpoint returns 429 until UTC midnight.
 - Question length is bounded on the request model (api.main.AskRequest).
 
-Spend accounting: /ask records the measured LLM cost from the orchestrator.
-The eval and health endpoints charge a flat, deliberately-high estimate UP
-FRONT (charge_flat), so a run that fails halfway can never spend unledgered
-money. Knobs live in payments_rag.config.
+This module is HTTP policy only (per ADR-0015/0017: the core owns
+persistence, the API layer owns request semantics): it maps ledger state and
+per-IP counters to 429 responses. Spend accounting: /ask records the measured
+LLM cost; eval and health runs pre-charge a flat, deliberately-high estimate
+(charge_flat), so a run that fails halfway can never spend unledgered money.
+Knobs live in payments_rag.config.
 """
 
 from __future__ import annotations
@@ -87,6 +90,11 @@ class RateLimiter:
             self._maybe_sweep(now)
             return None
 
+    def reset(self) -> None:
+        """Forget all counted hits (tests; not needed in production)."""
+        with self._lock:
+            self._hits.clear()
+
     def _maybe_sweep(self, now: float) -> None:
         """Drop stale IPs, at most once per window, to bound memory over months."""
         if now - self._last_sweep < self.window_s:
@@ -111,68 +119,12 @@ evals_limiter = RateLimiter(config.RATE_LIMIT_EVALS_PER_HOUR)
 health_limiter = RateLimiter(30)
 
 
-def ensure_table(conn: psycopg.Connection) -> None:
-    """Create the spend ledger if missing. Idempotent; callers own the commit.
-
-    The same DDL lives in infra/init.sql for fresh databases; this is the
-    self-heal path for databases created before the table existed.
-    """
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS wallet_guard (
-            day       DATE           PRIMARY KEY,
-            spent_usd NUMERIC(10, 6) NOT NULL DEFAULT 0
-        )
-        """
-    )
-
-
-def _with_table(conn: psycopg.Connection, fn: Callable[[], object]) -> object:
-    """Run fn; on UndefinedTable, roll back, create the ledger, retry once.
-
-    The rollback discards the caller's uncommitted work, so budget calls must
-    come FIRST in a request's transaction (they do: gate before paid work).
-    """
-    try:
-        return fn()
-    except psycopg.errors.UndefinedTable:
-        conn.rollback()
-        ensure_table(conn)
-        return fn()
-
-
-def spent_today(conn: psycopg.Connection) -> float:
-    def query():
-        return conn.execute(
-            "SELECT spent_usd FROM wallet_guard WHERE day = CURRENT_DATE"
-        ).fetchone()
-
-    row = _with_table(conn, query)
-    return float(row[0]) if row else 0.0
-
-
 def check_budget(conn: psycopg.Connection) -> None:
     """Raise 429 with a friendly message once today's spend reaches the cap."""
-    spent = spent_today(conn)
+    spent = db.wallet_spent_today(conn)
     if spent >= config.DAILY_BUDGET_USD:
         logger.warning("daily budget reached: %.4f / %.2f USD", spent, config.DAILY_BUDGET_USD)
         raise HTTPException(429, BUDGET_MESSAGE)
-
-
-def add_spend(conn: psycopg.Connection, usd: float) -> None:
-    """Add to today's ledger row. Callers own the commit (or rollback in tests)."""
-
-    def upsert():
-        conn.execute(
-            """
-            INSERT INTO wallet_guard (day, spent_usd) VALUES (CURRENT_DATE, %s)
-            ON CONFLICT (day) DO UPDATE
-                SET spent_usd = wallet_guard.spent_usd + EXCLUDED.spent_usd
-            """,
-            (usd,),
-        )
-
-    _with_table(conn, upsert)
 
 
 def charge_flat(est_usd: float) -> None:
@@ -188,7 +140,7 @@ def charge_flat(est_usd: float) -> None:
     try:
         with db.connect() as conn:
             check_budget(conn)
-            add_spend(conn, est_usd)
+            db.wallet_add_spend(conn, est_usd)
     except HTTPException:
         raise
     except Exception as exc:

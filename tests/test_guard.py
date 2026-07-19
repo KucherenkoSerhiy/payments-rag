@@ -14,15 +14,15 @@ from fastapi.testclient import TestClient
 from api import guard
 from api.main import app
 from payments_rag import config
+from payments_rag.adapters import db
 from payments_rag.orchestrator import AnswerResult
 
 
 @pytest.fixture(autouse=True)
 def _fresh_limiters():
     """The module-level limiters are process-global; don't leak hits across tests."""
-    guard.ask_limiter._hits.clear()
-    guard.evals_limiter._hits.clear()
-    guard.health_limiter._hits.clear()
+    for limiter in (guard.ask_limiter, guard.evals_limiter, guard.health_limiter):
+        limiter.reset()
     yield
     app.dependency_overrides.clear()
 
@@ -92,7 +92,7 @@ def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
 
     monkeypatch.setattr("api.main.db.connect", lambda: FakeConn())
     monkeypatch.setattr("api.main.guard.check_budget", lambda conn: None)
-    monkeypatch.setattr("api.main.guard.add_spend", lambda conn, usd: None)
+    monkeypatch.setattr("api.main.db.wallet_add_spend", lambda conn, usd: None)
     monkeypatch.setattr("api.main.answer", lambda conn, q, k=5: result)
     monkeypatch.setattr("api.main.query_log.log_query", lambda *a, **kw: None)
 
@@ -105,12 +105,12 @@ def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
 
 def test_budget_ledger_accumulates_and_trips(conn, monkeypatch) -> None:
     monkeypatch.setattr(config, "DAILY_BUDGET_USD", 0.01)
-    guard.ensure_table(conn)
-    base = guard.spent_today(conn)
-    guard.add_spend(conn, 0.004)
-    guard.add_spend(conn, 0.004)
-    assert abs(guard.spent_today(conn) - (base + 0.008)) < 1e-9
-    guard.add_spend(conn, 0.004)
+    db.wallet_ensure_table(conn)
+    base = db.wallet_spent_today(conn)
+    db.wallet_add_spend(conn, 0.004)
+    db.wallet_add_spend(conn, 0.004)
+    assert abs(db.wallet_spent_today(conn) - (base + 0.008)) < 1e-9
+    db.wallet_add_spend(conn, 0.004)
     with pytest.raises(HTTPException) as exc:
         guard.check_budget(conn)
     assert exc.value.status_code == 429
@@ -120,10 +120,10 @@ def test_ledger_self_heals_missing_table(conn) -> None:
     """Databases created before wallet_guard existed must not 500 /ask forever.
 
     The in-transaction DROP makes the first query raise UndefinedTable; the
-    guard's recovery (rollback + ensure_table + retry) must absorb it. The
+    adapter's recovery (rollback + create + retry) must absorb it. The
     rollback also undoes the DROP here, so only recovery is asserted, not an
     empty ledger.
     """
     conn.execute("DROP TABLE wallet_guard")
-    assert guard.spent_today(conn) >= 0.0  # recovered, no exception escaped
-    guard.add_spend(conn, 0.001)  # ledger writable after recovery
+    assert db.wallet_spent_today(conn) >= 0.0  # recovered, no exception escaped
+    db.wallet_add_spend(conn, 0.001)  # ledger writable after recovery
