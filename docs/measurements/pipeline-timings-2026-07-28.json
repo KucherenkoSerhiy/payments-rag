@@ -1,0 +1,391 @@
+{
+  "meta": {
+    "taken_at": "2026-07-28T21:32:53+02:00",
+    "machine": "Windows 11 (AMD64)",
+    "python": "3.14.0",
+    "instance": "local Postgres 127.0.0.1:5433/payments_rag",
+    "llm_model": "claude-haiku-4-5",
+    "embed_model": "text-embedding-3-small",
+    "db_host_literal": "127.0.0.1"
+  },
+  "context": {
+    "connect": {
+      "n": 5,
+      "median_ms": 31.126,
+      "mean_ms": 32.687,
+      "min_ms": 23.222,
+      "max_ms": 51.259,
+      "p90_ms": null
+    },
+    "chunks": 484,
+    "sources": {
+      "sct_rulebook_2025.pdf": 248,
+      "sct_inst_rulebook_2025.pdf": 236
+    },
+    "postgres_version": "17.10 (Debian 17.10-1.pgdg12+1)",
+    "pgvector_version": "0.8.2",
+    "indexes": {
+      "chunks_pkey": "CREATE UNIQUE INDEX chunks_pkey ON public.chunks USING btree (id)",
+      "chunks_embedding_idx": "CREATE INDEX chunks_embedding_idx ON public.chunks USING hnsw (embedding vector_cosine_ops)",
+      "chunks_text_fts_idx": "CREATE INDEX chunks_text_fts_idx ON public.chunks USING gin (to_tsvector('english'::regconfig, text))"
+    }
+  },
+  "measurements": {
+    "knn_isolated": {
+      "method": "db.nearest(conn, stored_vector, k=5), timed in Python incl. driver overhead, 50 runs after 5 warm-ups",
+      "n": 50,
+      "median_ms": 4.884,
+      "mean_ms": 5.017,
+      "min_ms": 4.137,
+      "max_ms": 6.828,
+      "p90_ms": 5.691
+    },
+    "embed_isolated": {
+      "method": "embed_one(question) over the 10 golden questions, one call each",
+      "n": 10,
+      "median_ms": 277.46,
+      "mean_ms": 669.335,
+      "min_ms": 191.419,
+      "max_ms": 3159.686,
+      "p90_ms": 1440.865
+    },
+    "end_to_end": {
+      "method": "orchestrator.answer(conn, q, k=5) over 10 golden questions x 3 rounds; first call excluded from stats as cold",
+      "cold_first_call": {
+        "wall_ms": 4288.0,
+        "retrieval_ms": 224.7,
+        "generation_ms": 4063.2
+      },
+      "wall": {
+        "n": 29,
+        "median_ms": 2823.156,
+        "mean_ms": 3610.228,
+        "min_ms": 1982.518,
+        "max_ms": 21422.962,
+        "p90_ms": 3750.532
+      },
+      "retrieval": {
+        "n": 29,
+        "median_ms": 223.582,
+        "mean_ms": 244.611,
+        "min_ms": 179.535,
+        "max_ms": 400.096,
+        "p90_ms": 341.334
+      },
+      "generation": {
+        "n": 29,
+        "median_ms": 2597.786,
+        "mean_ms": 3365.555,
+        "min_ms": 1742.899,
+        "max_ms": 21209.041,
+        "p90_ms": 3515.846
+      },
+      "total_cost_usd": 0.0824,
+      "raw": [
+        {
+          "round": 0,
+          "question": "What is the target maximum execution time for an SCT Inst payment?",
+          "wall_s": 4.288010000018403,
+          "retrieval_s": 0.22474089998286217,
+          "generation_s": 4.063205300015397,
+          "cost_usd": 0.002824,
+          "citations": 2
+        },
+        {
+          "round": 0,
+          "question": "Is the SCT Inst scheme available on weekends and public holidays?",
+          "wall_s": 21.422961700009182,
+          "retrieval_s": 0.2138614000286907,
+          "generation_s": 21.209040999994613,
+          "cost_usd": 0.002887,
+          "citations": 3
+        },
+        {
+          "round": 0,
+          "question": "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?",
+          "wall_s": 3.165405699983239,
+          "retrieval_s": 0.3581682000076398,
+          "generation_s": 2.8071823999634944,
+          "cost_usd": 0.003023,
+          "citations": 3
+        },
+        {
+          "round": 0,
+          "question": "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?",
+          "wall_s": 3.1388435999979265,
+          "retrieval_s": 0.185912000015378,
+          "generation_s": 2.9528603000217117,
+          "cost_usd": 0.00358,
+          "citations": 2
+        },
+        {
+          "round": 0,
+          "question": "In what currency are SCT Inst payments executed?",
+          "wall_s": 2.365503199980594,
+          "retrieval_s": 0.40009550005197525,
+          "generation_s": 1.9653549999929965,
+          "cost_usd": 0.002633,
+          "citations": 0
+        },
+        {
+          "round": 0,
+          "question": "What is the maximum execution time for a standard SCT credit transfer?",
+          "wall_s": 2.688076100021135,
+          "retrieval_s": 0.1935193999670446,
+          "generation_s": 2.494528300012462,
+          "cost_usd": 0.002898,
+          "citations": 2
+        },
+        {
+          "round": 0,
+          "question": "How are charges shared between the originator and beneficiary in a standard SCT?",
+          "wall_s": 3.5755546999862418,
+          "retrieval_s": 0.26753030001418665,
+          "generation_s": 3.3079503000481054,
+          "cost_usd": 0.002781,
+          "citations": 1
+        },
+        {
+          "round": 0,
+          "question": "What is the maximum length of remittance information in a standard SCT?",
+          "wall_s": 2.5610971999703906,
+          "retrieval_s": 0.22381749999476597,
+          "generation_s": 2.337203499977477,
+          "cost_usd": 0.002706,
+          "citations": 2
+        },
+        {
+          "round": 0,
+          "question": "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?",
+          "wall_s": 2.3641972999903373,
+          "retrieval_s": 0.1967208000132814,
+          "generation_s": 2.1674223999725655,
+          "cost_usd": 0.002404,
+          "citations": 1
+        },
+        {
+          "round": 0,
+          "question": "Does the SCT scheme itself set a maximum transaction amount?",
+          "wall_s": 2.226505199971143,
+          "retrieval_s": 0.24002119997749105,
+          "generation_s": 1.9864297999884002,
+          "cost_usd": 0.002161,
+          "citations": 1
+        },
+        {
+          "round": 1,
+          "question": "What is the target maximum execution time for an SCT Inst payment?",
+          "wall_s": 8.42720430000918,
+          "retrieval_s": 0.20133909996366128,
+          "generation_s": 8.225804099987727,
+          "cost_usd": 0.002819,
+          "citations": 2
+        },
+        {
+          "round": 1,
+          "question": "Is the SCT Inst scheme available on weekends and public holidays?",
+          "wall_s": 2.974497099989094,
+          "retrieval_s": 0.33824129996355623,
+          "generation_s": 2.6361756999976933,
+          "cost_usd": 0.002952,
+          "citations": 3
+        },
+        {
+          "round": 1,
+          "question": "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?",
+          "wall_s": 2.9990859999670647,
+          "retrieval_s": 0.20732149999821559,
+          "generation_s": 2.7916948000201955,
+          "cost_usd": 0.003028,
+          "citations": 3
+        },
+        {
+          "round": 1,
+          "question": "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?",
+          "wall_s": 2.942145899985917,
+          "retrieval_s": 0.3054874999797903,
+          "generation_s": 2.636579099984374,
+          "cost_usd": 0.003325,
+          "citations": 2
+        },
+        {
+          "round": 1,
+          "question": "In what currency are SCT Inst payments executed?",
+          "wall_s": 2.053809300006833,
+          "retrieval_s": 0.17953510000370443,
+          "generation_s": 1.8742199999978766,
+          "cost_usd": 0.002633,
+          "citations": 0
+        },
+        {
+          "round": 1,
+          "question": "What is the maximum execution time for a standard SCT credit transfer?",
+          "wall_s": 2.403947099985089,
+          "retrieval_s": 0.21740330004831776,
+          "generation_s": 2.186493400018662,
+          "cost_usd": 0.002413,
+          "citations": 1
+        },
+        {
+          "round": 1,
+          "question": "How are charges shared between the originator and beneficiary in a standard SCT?",
+          "wall_s": 2.7078474999871105,
+          "retrieval_s": 0.20913999999174848,
+          "generation_s": 2.498662300000433,
+          "cost_usd": 0.002681,
+          "citations": 1
+        },
+        {
+          "round": 1,
+          "question": "What is the maximum length of remittance information in a standard SCT?",
+          "wall_s": 2.407745699980296,
+          "retrieval_s": 0.18886550003662705,
+          "generation_s": 2.2188220999669284,
+          "cost_usd": 0.002676,
+          "citations": 2
+        },
+        {
+          "round": 1,
+          "question": "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?",
+          "wall_s": 2.205311800003983,
+          "retrieval_s": 0.19375900004524738,
+          "generation_s": 2.011505800008308,
+          "cost_usd": 0.002479,
+          "citations": 2
+        },
+        {
+          "round": 1,
+          "question": "Does the SCT scheme itself set a maximum transaction amount?",
+          "wall_s": 2.8231563000008464,
+          "retrieval_s": 0.22531150002032518,
+          "generation_s": 2.5977857999969274,
+          "cost_usd": 0.002286,
+          "citations": 1
+        },
+        {
+          "round": 2,
+          "question": "What is the target maximum execution time for an SCT Inst payment?",
+          "wall_s": 4.4133736999938264,
+          "retrieval_s": 0.346693100000266,
+          "generation_s": 4.066621200006921,
+          "cost_usd": 0.002879,
+          "citations": 2
+        },
+        {
+          "round": 2,
+          "question": "Is the SCT Inst scheme available on weekends and public holidays?",
+          "wall_s": 3.7505317999748513,
+          "retrieval_s": 0.23462750000180677,
+          "generation_s": 3.5158458999940194,
+          "cost_usd": 0.002912,
+          "citations": 3
+        },
+        {
+          "round": 2,
+          "question": "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?",
+          "wall_s": 2.971163600042928,
+          "retrieval_s": 0.2986213000258431,
+          "generation_s": 2.672475899977144,
+          "cost_usd": 0.003033,
+          "citations": 3
+        },
+        {
+          "round": 2,
+          "question": "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?",
+          "wall_s": 3.1062409000005573,
+          "retrieval_s": 0.20586360001470894,
+          "generation_s": 2.9003158999839798,
+          "cost_usd": 0.0035,
+          "citations": 2
+        },
+        {
+          "round": 2,
+          "question": "In what currency are SCT Inst payments executed?",
+          "wall_s": 2.6671733999974094,
+          "retrieval_s": 0.22358190000522882,
+          "generation_s": 2.443543299974408,
+          "cost_usd": 0.002643,
+          "citations": 0
+        },
+        {
+          "round": 2,
+          "question": "What is the maximum execution time for a standard SCT credit transfer?",
+          "wall_s": 3.1551055000163615,
+          "retrieval_s": 0.3413336999947205,
+          "generation_s": 2.8137229999992996,
+          "cost_usd": 0.002378,
+          "citations": 1
+        },
+        {
+          "round": 2,
+          "question": "How are charges shared between the originator and beneficiary in a standard SCT?",
+          "wall_s": 2.966046200017445,
+          "retrieval_s": 0.2498574999626726,
+          "generation_s": 2.716129500011448,
+          "cost_usd": 0.002636,
+          "citations": 1
+        },
+        {
+          "round": 2,
+          "question": "What is the maximum length of remittance information in a standard SCT?",
+          "wall_s": 2.1649355000117794,
+          "retrieval_s": 0.20328329998301342,
+          "generation_s": 1.9615856999880634,
+          "cost_usd": 0.002711,
+          "citations": 4
+        },
+        {
+          "round": 2,
+          "question": "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?",
+          "wall_s": 1.9825175000005402,
+          "retrieval_s": 0.2395632000407204,
+          "generation_s": 1.7428985000005923,
+          "cost_usd": 0.002424,
+          "citations": 1
+        },
+        {
+          "round": 2,
+          "question": "Does the SCT scheme itself set a maximum transaction amount?",
+          "wall_s": 2.0666161999688484,
+          "retrieval_s": 0.2042401999933645,
+          "generation_s": 1.8622426000074483,
+          "cost_usd": 0.002141,
+          "citations": 1
+        }
+      ]
+    },
+    "explain_local": {
+      "method": "EXPLAIN (ANALYZE, BUFFERS) on the exact db.nearest query, k=5, lines truncated to 300 chars",
+      "uses_hnsw_index": false,
+      "plan": [
+        "Limit  (cost=150.09..150.10 rows=5 width=1371) (actual time=3.874..3.878 rows=5 loops=1)",
+        "  Buffers: shared hit=1588",
+        "  ->  Sort  (cost=150.09..151.30 rows=484 width=1371) (actual time=3.871..3.873 rows=5 loops=1)",
+        "        Sort Key: ((embedding <=> '[-0.022857666,-0.007537842,0.010231018,-0.004337311,-0.0155181885,0.010223389,0.00724411,0.03225708,0.023025513,-0.0680542,0.07421875,-0.048217773,-0.027435303,0.0065841675,0.022949219,-0.0020637512,0.023834229,0.033691406,-0.013717651,0.033294678,0.00020051003,-0.",
+        "        Sort Method: top-N heapsort  Memory: 33kB",
+        "        Buffers: shared hit=1588",
+        "        ->  Seq Scan on chunks  (cost=0.00..142.05 rows=484 width=1371) (actual time=0.056..3.570 rows=484 loops=1)",
+        "              Buffers: shared hit=1588",
+        "Planning:",
+        "  Buffers: shared hit=1",
+        "Planning Time: 0.175 ms",
+        "Execution Time: 3.902 ms"
+      ]
+    },
+    "explain_local_seqscan_off": {
+      "method": "same query with SET LOCAL enable_seqscan = off (session-local diagnostic, rolled back)",
+      "uses_hnsw_index": true,
+      "plan": [
+        "Limit  (cost=2145.81..2158.58 rows=5 width=1371) (actual time=66.449..66.510 rows=5 loops=1)",
+        "  Buffers: shared hit=75 read=183",
+        "  ->  Index Scan using chunks_embedding_idx on chunks  (cost=2145.81..3381.68 rows=484 width=1371) (actual time=66.446..66.505 rows=5 loops=1)",
+        "        Order By: (embedding <=> '[-0.022857666,-0.007537842,0.010231018,-0.004337311,-0.0155181885,0.010223389,0.00724411,0.03225708,0.023025513,-0.0680542,0.07421875,-0.048217773,-0.027435303,0.0065841675,0.022949219,-0.0020637512,0.023834229,0.033691406,-0.013717651,0.033294678,0.00020051003,-0.0",
+        "        Buffers: shared hit=75 read=183",
+        "Planning:",
+        "  Buffers: shared hit=1",
+        "Planning Time: 0.184 ms",
+        "Execution Time: 66.551 ms"
+      ]
+    }
+  }
+}
