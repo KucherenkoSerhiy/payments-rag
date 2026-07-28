@@ -1,0 +1,21 @@
+{
+  "note": "Captured by running the measurement inside the Fly production container (fly ssh console), so the Neon connection string never left the deployment. Read-only: EXPLAIN ANALYZE on a SELECT plus 30 timed KNN queries.",
+  "taken_at": "2026-07-28T22:15+02:00",
+  "instance": "Neon, reached from the Fly.io container (app payments-rag)",
+  "rows": 484,
+  "pg": "18.4 (df16b3c)",
+  "pgvector": "0.8.1",
+  "idx": ["chunks_pkey", "chunks_embedding_idx", "chunks_text_fts_idx"],
+  "knn_ms": {"n": 30, "median": 17.263, "min": 16.879, "max": 26.761, "measured_from": "app container, includes network hop to Neon"},
+  "plan": [
+    "Limit  (cost=109.09..109.10 rows=5 width=1371) (actual time=2.577..2.578 rows=5.00 loops=1)",
+    "  Buffers: shared hit=1547",
+    "  ->  Sort  (cost=109.09..110.30 rows=484 width=1371) (actual time=2.575..2.576 rows=5.00 loops=1)",
+    "        Sort Method: top-N heapsort  Memory: 33kB",
+    "        Buffers: shared hit=1547",
+    "        ->  Seq Scan on chunks  (cost=0.00..101.05 rows=484 width=1371) (actual time=0.043..2.331 rows=484.00 loops=1)",
+    "              Buffers: shared hit=1547",
+    "Planning Time: 0.086 ms",
+    "Execution Time: 2.601 ms"
+  ]
+}

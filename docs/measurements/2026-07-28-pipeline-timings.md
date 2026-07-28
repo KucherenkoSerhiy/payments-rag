@@ -11,11 +11,15 @@
 
 | | Local | Production |
 |---|---|---|
-| Instance | Postgres 17.10 + pgvector 0.8.2, Docker, `127.0.0.1:5433` | Neon, behind the Fly.io deployment |
-| Machine | Windows 11, AMD64, Python 3.14.0 | Fly.io container, measured over the public API from Barcelona |
-| Corpus | 484 chunks (sct_inst 236, sct 248) | assumed same, not directly verified |
+| Instance | Postgres 17.10 + pgvector 0.8.2, Docker, `127.0.0.1:5433` | Neon, Postgres 18.4 + pgvector 0.8.1, behind Fly.io |
+| Machine | Windows 11, AMD64, Python 3.14.0 | Fly.io container; API calls made from Barcelona |
+| Corpus | 484 chunks (sct_inst 236, sct 248) | 484 chunks (verified on Neon) |
 | Models | claude-haiku-4-5, text-embedding-3-small | same |
-| Indexes on `chunks` | `chunks_embedding_idx` HNSW (vector_cosine_ops), `chunks_text_fts_idx` GIN, `chunks_pkey` btree | not inspected (no DB credentials) |
+| Indexes on `chunks` | `chunks_embedding_idx` HNSW (vector_cosine_ops), `chunks_text_fts_idx` GIN, `chunks_pkey` btree | same three |
+
+Production numbers were taken by running the same code inside the Fly container via `fly ssh console`, so the Neon connection string never left the deployment. Read-only throughout: `EXPLAIN ANALYZE` on a `SELECT`, plus timed KNN queries.
+
+Note on production shape: the Fly machine scales to zero. A cold request took **15.4 s** to return health while the machine woke. That is a deployment property, not a pipeline cost, and it is excluded from the timings below, which were all taken against a warm machine.
 
 **Health gate.** `DATABASE_URL` resolves to `127.0.0.1`, not `localhost`, so the IPv6 bug is not active. Connect: **median 31.1 ms** (n=5, min 23.2, max 51.3). The broken-system trace showed ~10,137 ms for the same operation. The system measured here is healthy.
 
@@ -71,7 +75,17 @@ retrieval stage        224 ms   (100%)
 
 **The "the slow part was the embedding API call" claim is confirmed.** It is 98% of the retrieval stage.
 
-KNN on Neon could not be isolated: no database credentials available locally, and the production API does not expose the split below `retrieval_s`. Bounded indirectly, production retrieval (161 ms) minus the production embedding probe (172 ms) leaves KNN inside the noise, so it is small there too. That is an inference, not a measurement.
+**KNN, production (Neon, measured from the app container): median 17.263 ms** (n=30, min 16.879, max 26.761).
+
+That is 3.5x the local figure, and the gap is the network. Neon's own server-side execution is *faster* than local (2.601 ms vs 3.902 ms, see below); the extra ~14 ms is the round trip from the Fly container to Neon. So the production retrieval stage decomposes as:
+
+```
+retrieval stage        161 ms   (100%)
+  embedding API call  ~144 ms   (89.3%)   <- derived: retrieval minus KNN
+  vector search (KNN)   17.3 ms  (10.7%)
+```
+
+The embedding call still dominates in production, but the database is a tenth of the stage rather than a fiftieth. Caveat: the 161 ms retrieval median and the 17.3 ms KNN median come from separate samples taken minutes apart, so treat the split as approximate.
 
 ---
 
@@ -102,7 +116,21 @@ Execution Time: 66.551 ms
 
 The article's claim that the planner does not use the HNSW index is **confirmed on local**. The stronger finding is *why*: forcing the index makes the query **17x slower** (66.6 ms vs 3.9 ms), because at 484 rows the index costs 183 page reads while the sequential scan runs entirely from cache. The planner is not being naive, it is correct.
 
-**Not done: EXPLAIN ANALYZE on Neon.** No connection string in `.env`, no deploy config in this repo. This needs the Neon URL to complete. Local and production planners can legitimately disagree, so this remains genuinely unknown.
+**Neon, same query, run from inside the production container:**
+
+```
+Limit  (cost=109.09..109.10 rows=5) (actual time=2.577..2.578 rows=5.00 loops=1)
+  Buffers: shared hit=1547
+  ->  Sort  (cost=109.09..110.30 rows=484) (actual time=2.575..2.576 rows=5.00)
+        Sort Method: top-N heapsort  Memory: 33kB
+        ->  Seq Scan on chunks  (cost=0.00..101.05 rows=484) (actual time=0.043..2.331 rows=484.00)
+Planning Time: 0.086 ms
+Execution Time: 2.601 ms
+```
+
+**The two instances agree.** Neon also picks a sequential scan with a top-N heapsort and ignores the HNSW index, on a different major version (18.4 vs 17.10) and a different pgvector build (0.8.1 vs 0.8.2). Two independent planners reaching the same decision is much stronger evidence than one, so the claim can now be stated for this corpus size rather than for one machine.
+
+Neon executes it slightly faster server-side (2.601 ms vs 3.902 ms). The client-observed difference (17.3 ms vs 4.9 ms) is network, not database.
 
 ---
 
@@ -115,9 +143,13 @@ The ratio is accidentally close to right: 3.7/2,100 = 0.176%, and the honest end
 - **4.9 ms**, not 3.7 ms, for the vector search today (same method, different sample).
 - **2,100 ms was never the pipeline.** It was the *retrieval stage*, taken from the broken-system trace. The real retrieval stage on a healthy system is **224 ms**, roughly 9x smaller. The real pipeline is **2,823 ms**.
 
-Honest restatement, both denominators:
+Honest restatement, both denominators and both instances:
 
-> Vector search is **4.9 ms of a 2,823 ms end-to-end query (0.17%)**, and **2.2% of the 224 ms retrieval stage**. The retrieval stage itself is only 8% of the query; generation is **92%**. Almost all of retrieval is the embedding API call, not the database.
+> **Local:** vector search is **4.9 ms of a 2,823 ms query (0.17%)**, and **2.2% of the 224 ms retrieval stage**.
+> **Production:** vector search is **17.3 ms of a 2,189 ms query (0.8%)**, and **10.7% of the 161 ms retrieval stage**.
+> On both, the retrieval stage is about 8% of the query and generation is about **92%**. Most of retrieval is the embedding API call, not the database.
+
+Production is the number to quote in anything public, since it is what a user actually experiences. It is roughly 4x less favourable than the local figure, and the conclusion holds anyway.
 
 Both denominators are worth stating because they answer different questions. Against the **pipeline**, the point is that a faster vector engine is invisible to the user: replacing pgvector with something infinitely fast would return 0.17% of the wait. Against the **retrieval stage**, the point is narrower but sharper: even inside the component named "retrieval", the database is 2% and the network call to OpenAI is 98%.
 
@@ -127,9 +159,9 @@ The engineering conclusion, that a faster vector engine would have optimised the
 
 ## Claims to restate wherever the old figure was quoted
 
-1. "Vector search is 3.7 ms of a 2,100 ms pipeline" becomes the restated form above: 4.9 ms of a 2,823 ms query, 2.2% of a 224 ms retrieval stage.
-2. "The retrieval stage came to about 2.1 seconds" is wrong by roughly 9x on a healthy system. It is 224 ms.
-3. "The planner does not use the HNSW index" is correct on this instance, and is worth stating with the reason: forcing the index is 17x slower at this corpus size.
+1. "Vector search is 3.7 ms of a 2,100 ms pipeline" becomes the restated form above. Prefer the production figure: **17 ms of a 2,200 ms query, under 1%**.
+2. "The retrieval stage came to about 2.1 seconds" is wrong by roughly 9x on a healthy system. It is 224 ms local, 161 ms production.
+3. "The planner does not use the HNSW index" is confirmed on **both** local Postgres 17.10 and Neon 18.4, and is worth stating with the reason: forcing the index is 17x slower at this corpus size.
 
 ## How to reproduce
 
