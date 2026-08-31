@@ -8,7 +8,7 @@ source+page so the answer is verifiable (ADR-0006). The LLM plumbing lives in
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import perf_counter
 
 import psycopg
@@ -30,6 +30,7 @@ class Citation:
 class AnswerResult:
     answer: str
     citations: list[Citation]
+    retrieved_chunks: list[RetrievedChunk] = field(default_factory=list)  # the full top-k, not just cited ones
     retrieval_s: float = 0.0   # seconds spent embedding + searching
     generation_s: float = 0.0  # seconds spent in the LLM call
     input_tokens: int = 0
@@ -78,6 +79,7 @@ def answer(conn: psycopg.Connection, question: str, *, k: int = 5) -> AnswerResu
     return AnswerResult(
         answer=data["answer"],
         citations=citations,
+        retrieved_chunks=chunks,
         retrieval_s=retrieval_s,
         generation_s=generation_s,
         input_tokens=usage["input_tokens"],

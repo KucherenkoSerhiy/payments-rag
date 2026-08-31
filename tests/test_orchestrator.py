@@ -46,3 +46,5 @@ def test_answer_maps_cited_ids_and_ignores_invented_ones(monkeypatch) -> None:
     assert result.citations == [
         Citation(chunk_id=42, source="a.pdf", page=26, text="Settlement is 5 seconds.")
     ]
+    # the full retrieved set is kept too, not just the cited subset (RAGAS needs this)
+    assert result.retrieved_chunks == CHUNKS
