@@ -27,13 +27,18 @@
   </div>
 
   <div class="ev">
-    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages (click to open the page)</span></div>
+    <div class="evhead"><span class="t">Evidence</span><span class="s">{{ r.citations.length }} passages (click to expand)</span></div>
     @for (c of r.citations; track c.chunk_id; let i = $index) {
       <div class="src">
-        <a class="srch" [href]="pdfUrl(c)" target="_blank" rel="noopener">
-          <span class="srcn">{{ i + 1 }}</span> {{ c.source }} · p{{ c.page }} <i class="ti ti-external-link ext"></i>
-        </a>
-        <p class="srct">{{ c.text }}</p>
+        <div class="srch" role="button" tabindex="0" [attr.aria-expanded]="isOpen(c.chunk_id)"
+             (click)="toggle(c.chunk_id)" (keyup.enter)="toggle(c.chunk_id)" (keyup.space)="toggle(c.chunk_id)">
+          <i class="ti ti-chevron-right caret" [class.open]="isOpen(c.chunk_id)"></i>
+          <span class="srcn">{{ i + 1 }}</span>
+          <a class="srcl" [href]="pdfUrl(c)" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+            {{ c.source }} · p{{ c.page }} <i class="ti ti-external-link ext"></i>
+          </a>
+        </div>
+        @if (isOpen(c.chunk_id)) { <p class="srct">{{ c.text }}</p> }
       </div>
     }
     @if (r.citations.length === 0) {

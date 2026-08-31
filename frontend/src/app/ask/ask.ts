@@ -18,6 +18,8 @@ export class Ask {
   error = signal('');
   history = signal<HistEntry[]>([]);
   examples = ['How are charges shared?', 'What is the maximum remittance length?', 'Is SCT Inst available 24/7?'];
+  /** chunk_ids whose passage text is expanded; evidence starts collapsed. */
+  private expanded = signal<ReadonlySet<number>>(new Set());
 
   constructor() {
     const saved = localStorage.getItem('ask-history');
@@ -35,6 +37,7 @@ export class Ask {
     this.api.ask(question).subscribe({
       next: r => {
         this.result.set(r);
+        this.expanded.set(new Set());
         this.loading.set(false);
         this.history.update(h => [{ q: question, result: r }, ...h.filter(x => x.q !== question)].slice(0, 20));
         localStorage.setItem('ask-history', JSON.stringify(this.history()));
@@ -44,7 +47,16 @@ export class Ask {
   }
 
   pick(e: string) { this.q = e; this.ask(); }
-  show(h: HistEntry) { this.q = h.q; this.error.set(''); this.result.set(h.result); }
+  show(h: HistEntry) { this.q = h.q; this.error.set(''); this.result.set(h.result); this.expanded.set(new Set()); }
+
+  isOpen(chunkId: number) { return this.expanded().has(chunkId); }
+  toggle(chunkId: number) {
+    this.expanded.update(open => {
+      const next = new Set(open);
+      next.has(chunkId) ? next.delete(chunkId) : next.add(chunkId);
+      return next;
+    });
+  }
   clearHistory() { this.history.set([]); localStorage.removeItem('ask-history'); }
   pdfUrl(c: Citation) { return this.api.pdfUrl(c.source, c.page); }
 }
