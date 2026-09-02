@@ -21,8 +21,9 @@ the design (ADR-0015). It's listed below in dependency order, outermost first:
 
 ```
 payments_rag/                the framework-free core (all the RAG logic)
-├── cli.py                   entry point: index / query from the terminal
-├── orchestrator.py          the answer flow: retrieve → prompt → LLM → cited answer
+├── cli.py                   entry point: index / query / ask from the terminal
+├── domain.py                shared value objects: RetrievedChunk, Citation,
+│                            AnswerResult, IndexStats - pure data, imports nothing
 ├── indexing/                offline: PDF → clean → chunk → embed → store
 │   ├── indexer.py           CorpusIndexer (the pipeline)
 │   ├── textprep.py          pure: strip repeated header/footer boilerplate
@@ -31,28 +32,36 @@ payments_rag/                the framework-free core (all the RAG logic)
 │   ├── retriever.py         vector (default) + hybrid RRF retrieval
 │   ├── fusion.py            pure: reciprocal rank fusion
 │   └── rerank.py            cross-encoder re-ranking (ADR-0016, eval-only)
+├── answering/               online: question → cited answer
+│   ├── orchestrator.py      the answer flow: retrieve → prompt → LLM → cited answer
+│   └── service.py           the deployed ask use case: answer + spend ledger + telemetry
 ├── adapters/                external services (Ports & Adapters)
-│   ├── db.py                Postgres + pgvector (KNN + full-text)
+│   ├── db.py                Postgres + pgvector (KNN + full-text + wallet ledger)
 │   ├── embedding.py         OpenAI text-embedding-3-small
+│   ├── pdf.py               pypdf: file → per-page raw text
 │   ├── reranker.py          cross-encoder model host (ADR-0016)
 │   └── llm.py               Anthropic Claude → structured {answer, citations}
 ├── config.py                innermost layer: models, DSN, timeouts, lazy key checks
 ├── health.py                per-dependency probes (DB, responder, judge, embed)
 └── query_log.py             per-query telemetry (timing, tokens, cost)
 
-api/         FastAPI over the core: /ask, /health, /evals, /usage, /source (PDF)
+api/         FastAPI over the core: /ask, /health, /evals, /usage, /source (PDF);
+             guard.py (HTTP policy: budget + 429s) + rate_limit.py (pure counter)
 frontend/    Angular SPA (Ask / Evals / Usage / Health views)
 evals/       retrieval + answer eval harnesses + golden sets
+comparison/  the six-system RAG comparison harness (docs/vs-managed-rag.md)
+scripts/     smoke_live.py - pre-push end-to-end check against real DB + APIs
 infra/       docker-compose (Postgres + pgvector) + init.sql (schema + HNSW + FTS)
 corpus/      source PDFs live here (raw/ + processed/; the PDFs are gitignored)
 tests/       unit + DB / retrieval integration tests
 docs/        ADRs, glossary, this file
 ```
 
-Dependencies point inward: `cli`/`api` → `orchestrator` → `indexing`/`retrieval` →
-`adapters` → `config`. Nothing in `adapters/` imports the flow layers, and nothing
-in the core imports the entry points, which is what lets the FastAPI API and the
-CLI reuse the *same* core.
+Dependencies point inward: `cli`/`api` → `answering` → `indexing`/`retrieval` →
+`adapters` → `config`, with `domain` shared by every layer and importing nothing.
+Nothing in `adapters/` imports the flow layers, and nothing in the core imports
+the entry points, which is what lets the FastAPI API and the CLI reuse the
+*same* core.
 
 That chain is the **Ask** (answer) path, the main RAG loop. The other three views
 take shorter routes: **Health** probes each adapter directly, **Usage** reads

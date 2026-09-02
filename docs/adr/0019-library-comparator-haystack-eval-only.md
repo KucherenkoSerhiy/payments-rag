@@ -9,7 +9,7 @@ vs-managed-rag comparison; does not reopen ADR-0004.
 
 ADR-0004 rejected LangChain/LangGraph for the **production orchestrator**: hand-rolled
 `anthropic`/`openai` calls stay legible for a system this small. That question was
-"should `payments_rag/orchestrator.py` use a framework," and the answer stays no.
+"should `payments_rag/answering/orchestrator.py` use a framework," and the answer stays no.
 
 `docs/vs-managed-rag.md` asks a different question: how does this project's approach
 compare against other ways to build a RAG, on an integration/data-exposure axis. It
@@ -59,7 +59,7 @@ framework; it was written about production code, and comparison code living in
    package and broke another adapter — a framework with its own pinned transitive
    dependencies risks the same collision.
 
-This does not reopen ADR-0004. `payments_rag/orchestrator.py` stays hand-rolled; this
+This does not reopen ADR-0004. `payments_rag/answering/orchestrator.py` stays hand-rolled; this
 adds a third measured comparator beside Haystack, LlamaIndex, OpenAI, and NotebookLM,
 exactly the way RAGAS already coexists with ADR-0004 as an isolated eval-only
 dependency — including for the one framework ADR-0004 names outright.

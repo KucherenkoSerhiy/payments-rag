@@ -86,7 +86,7 @@ a new party to the trust boundary, and it does not create a persistent
 third-party index. That is the justification for treating it differently from
 everything else in this section, not just "it's from a vendor we already use."
 It would replace the hand-rolled `{answer, citations: [chunk_id]}` JSON parsing
-in `payments_rag/orchestrator.py` and `adapters/llm.py`, so it is still a real
+in `payments_rag/answering/orchestrator.py` and `adapters/llm.py`, so it is still a real
 code change and needs its own go-ahead before anything is touched.
 
 **OpenAI's `file_search` (Responses API) does not clear it.** Uploading the
