@@ -9,7 +9,8 @@ COMPOSE := docker compose -f infra/docker-compose.yml
 
 .PHONY: help install db down index api ui test smoke \
         compare-payments-rag compare-openai compare-notebooklm compare-haystack compare-llamaindex compare-langchain \
-        compare-score compare-judge compare-all
+        compare-score compare-judge compare-all \
+        matrix-run matrix-judge matrix-report
 
 help:  ## list the targets
 	@grep -hE '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*## "}{printf "  %-22s %s\n", $$1, $$2}'
@@ -80,3 +81,12 @@ compare-report:  ## comparison: regenerate docs/comparison-report.md from both s
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.report
 
 compare-all: compare-payments-rag compare-openai compare-notebooklm compare-haystack compare-llamaindex compare-langchain compare-score compare-judge  ## comparison: run every system + both scorers
+
+matrix-run:  ## matrix (article 06): collect answers for every pipeline x topic (missing keys skip their pipelines)
+	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.matrix.run_matrix
+
+matrix-judge:  ## matrix (article 06): score every collected answer with all three judges
+	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.matrix.judge_matrix
+
+matrix-report:  ## matrix (article 06): aggregate answers + judge scores into a summary table (free, no API)
+	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.matrix.report

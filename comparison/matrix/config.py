@@ -56,9 +56,9 @@ EMBED_MODELS = {
 CHAT_MODELS = {
     "sonnet": ChatModel("sonnet", "anthropic", "claude-sonnet-5", 2.00, 10.00),
     "haiku": ChatModel("haiku", "anthropic", "claude-haiku-4-5-20251001", 1.00, 5.00),
-    # TODO(verify): exact OpenAI API id for the GPT-5.6 mid tier ("terra").
+    # Model ids confirmed live against the API 2026-09-01 (models.list + one
+    # real completion each); prices still need the pre-publication re-check.
     "gpt-terra": ChatModel("gpt-terra", "openai", "gpt-5.6-terra", 2.00, 12.00),
-    # TODO(verify): exact OpenAI API id for the GPT-5.6 flagship ("sol").
     "gpt-sol": ChatModel("gpt-sol", "openai", "gpt-5.6-sol", 4.00, 24.00),
     # TODO(verify): Gemini 3.7 Flash API id + intro pricing (released 2026-08-13).
     "gem-flash": ChatModel("gem-flash", "gemini", "gemini-3.7-flash", 0.75, 3.75),

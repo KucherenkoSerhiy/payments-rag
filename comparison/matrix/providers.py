@@ -22,9 +22,12 @@ from dataclasses import dataclass
 
 import httpx
 from anthropic import Anthropic
+from dotenv import load_dotenv
 from openai import OpenAI
 
 from comparison.matrix.config import PROVIDER_ENV_KEYS, ChatModel, EmbedModel
+
+load_dotenv()  # same pattern as evals/ragas_metrics.py: keys come from .env
 
 _OPENAI_COMPAT_BASE_URLS = {
     "openai": None,  # SDK default

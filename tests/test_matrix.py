@@ -7,6 +7,7 @@ run on synthetic corpora in tmp_path.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -171,3 +172,47 @@ def test_cost_math():
     assert chat_cost_usd(sonnet, 0, 1_000_000) == pytest.approx(sonnet.price_out_per_mtok)
     emb = EMBED_MODELS["oai-small"]
     assert embed_cost_usd(emb, 1_000_000) == pytest.approx(emb.price_per_mtok)
+
+
+# --- report aggregation ------------------------------------------------------
+
+def test_report_aggregation(tmp_path, monkeypatch):
+    from comparison.matrix import report as report_mod
+
+    answers = [
+        {"pipeline": "p1-oai-sonnet", "topic": "sepa", "question_id": "q1",
+         "cost_usd": 0.01, "latency_s": 2.0},
+        {"pipeline": "p1-oai-sonnet", "topic": "sepa", "question_id": "q2",
+         "cost_usd": 0.02, "latency_s": 4.0},
+    ]
+    scores = [
+        {"pipeline": "p1-oai-sonnet", "topic": "sepa", "question_id": "q1",
+         "judge": "sonnet", "score": 90},
+        {"pipeline": "p1-oai-sonnet", "topic": "sepa", "question_id": "q2",
+         "judge": "sonnet", "score": 50},
+        {"pipeline": "p1-oai-sonnet", "topic": "sepa", "question_id": "q1",
+         "judge": "gpt-sol", "score": 80},
+    ]
+    answers_path = tmp_path / "answers.jsonl"
+    scores_path = tmp_path / "scores.jsonl"
+    out_path = tmp_path / "summary.json"
+    answers_path.write_text("\n".join(json.dumps(r) for r in answers), encoding="utf-8")
+    scores_path.write_text("\n".join(json.dumps(r) for r in scores), encoding="utf-8")
+    monkeypatch.setattr(report_mod, "ANSWERS", answers_path)
+    monkeypatch.setattr(report_mod, "SCORES", scores_path)
+    monkeypatch.setattr(report_mod, "OUT", out_path)
+
+    report_mod.run()
+    summary = json.loads(out_path.read_text(encoding="utf-8"))
+
+    cell = summary["cells"][0]
+    assert cell["n"] == 2
+    assert cell["total_cost_usd"] == pytest.approx(0.03)
+    assert cell["judges"]["sonnet"]["mean"] == pytest.approx(70.0)
+    assert cell["judges"]["sonnet"]["pass_rate"] == pytest.approx(0.5)  # 90 passes, 50 fails
+    assert cell["judges"]["gpt-sol"]["mean"] == pytest.approx(80.0)
+
+    # anthropic judging anthropic output = self-judging diagonal
+    matrix = summary["judge_vendor_matrix"]
+    assert matrix["anthropic"]["anthropic"]["self_judging"] is True
+    assert matrix["openai"]["anthropic"]["self_judging"] is False
