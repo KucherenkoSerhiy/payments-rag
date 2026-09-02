@@ -38,7 +38,7 @@ def cmd_index(args: argparse.Namespace) -> None:
             conn.commit()
             log.info("reset: cleared %d existing chunks", cleared)
         indexer = CorpusIndexer(
-            conn, chunk_size=args.chunk_size, overlap=args.overlap
+            conn, chunk_size=args.chunk_size, overlap=args.overlap, contextual=args.contextual
         )
         stats = indexer.index_corpus(args.corpus)
         total = sum(s.chunks for s in stats)
@@ -99,6 +99,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_index.add_argument("--reset", action="store_true", help="clear all chunks first")
     p_index.add_argument("--chunk-size", type=int, default=300, dest="chunk_size")
     p_index.add_argument("--overlap", type=int, default=50)
+    p_index.add_argument(
+        "--contextual", action="store_true",
+        help="embed each chunk with an LLM context blurb prepended (ADR-0023; ~$0.5 one-time)",
+    )
     p_index.set_defaults(func=cmd_index)
 
     p_query = sub.add_parser("query", help="retrieve chunks for a question")
