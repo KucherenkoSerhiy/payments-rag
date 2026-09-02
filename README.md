@@ -110,11 +110,13 @@ top‑k; see the [retrieval-quality playbook](docs/retrieval-quality-playbook.md
 
 | Path | What |
 |---|---|
-| `payments_rag/` | Core: retrieval, orchestrator, adapters, health, query log, CLI |
+| `payments_rag/` | Core: domain, indexing, retrieval, answering, adapters, health, query log, CLI |
 | `api/` | FastAPI backend (thin HTTP layer over the core) |
 | `frontend/` | Angular SPA (the four views) |
 | `evals/` | Golden sets + retrieval/answer eval harnesses |
-| `docs/` | ADRs, the retrieval playbook, glossary |
+| `comparison/` | Six-system RAG comparison harness ([report](docs/comparison-report.md)) |
+| `scripts/` | `smoke_live.py`: pre-push end-to-end check against real DB + APIs |
+| `docs/` | ADRs, the retrieval playbook, the comparison report, glossary |
 | `infra/` | `docker-compose.yml` + `init.sql` (Postgres + pgvector) |
 
 The decision history lives in [`docs/adr/`](docs/adr/): the "why" behind most choices.
