@@ -25,7 +25,7 @@ model (GPT‑4) so nothing marks its own homework.
   rulebook page (`#page=N`) so you can verify it yourself.
 - **Measured quality.** A hand-verified golden set drives `recall@k` for
   retrieval and a cross-model LLM-as-judge for answers, run live in the **Evals**
-  view (currently recall@5 = 0.60; answers 84.8 mean / 90% pass).
+  view (currently recall@5 = 0.80; answers 96.3 mean / 100% pass).
 - **Observable by design.** Per-query timing and token cost on every answer, plus a
   **Health** view that checks all five dependencies (DB, Claude, GPT‑4, OpenAI,
   service) on demand and every 10 minutes.
@@ -73,14 +73,17 @@ Quality gets a number. Against a hand-verified golden set (10 Q&A per track):
 
 | Metric | Result | What it means |
 |---|---|---|
-| Retrieval recall@5 | **0.60** (6/10) | the right page lands in the top 5 (`evals.retrieval_eval`) |
-| Answer score, mean | **84.8** / 100 | cross-model GPT‑4 judge (`evals.answer_eval`) |
-| Answer pass rate | **90%** (9/10) | judge score ≥ threshold |
+| Retrieval recall@5 | **0.80** (8/10) | the right page lands in the top 5 (`evals.retrieval_eval`) |
+| Answer score, mean | **96.3** / 100 | cross-model GPT‑4 judge (`evals.answer_eval`) |
+| Answer pass rate | **100%** (10/10) | judge score ≥ threshold |
 
-The set is small on purpose (every item is hand-verified) and retrieval is the
-current bottleneck (the right page isn't always in the top‑k; see the
-[retrieval-quality playbook](docs/retrieval-quality-playbook.md)). The same numbers
-show live in the **Evals** view.
+The set is small on purpose (every item is hand-verified). Retrieval recall was
+0.60 until contextual retrieval — an LLM blurb situating each chunk before
+embedding — lifted it to 0.80 at zero query-time cost
+([ADR‑0023](docs/adr/0023-contextual-retrieval.md); the measured journey, including
+the multi-query rewrite that did NOT help, is in the
+[retrieval-quality playbook](docs/retrieval-quality-playbook.md) and ADR‑0022).
+The same numbers show live in the **Evals** view.
 
 > **Why does the pass rate beat recall@5?** The judge grades answer *correctness*
 > against a reference, not whether the answer was grounded in the retrieved page.
