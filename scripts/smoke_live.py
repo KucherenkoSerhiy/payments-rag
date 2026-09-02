@@ -1,13 +1,13 @@
-"""Smoke test: does the whole thing start and answer one question end-to-end?
+"""Pre-push smoke against the real DB + APIs (tests/test_smoke.py fakes the paid
+services; this doesn't - hence scripts/, not tests/).
 
-Run before pushing:  python -m smoke_test
-Exit 0 = healthy, 1 = broken. Hits the real DB + APIs (not a unit test).
+Run:  uv run python scripts/smoke_live.py    (exit 0 = healthy)
 """
 
 from __future__ import annotations
 
 from payments_rag.adapters import db
-from payments_rag.orchestrator import answer
+from payments_rag.answering.orchestrator import answer
 
 BASELINE_Q = "How fast does an SCT Inst payment settle?"
 
