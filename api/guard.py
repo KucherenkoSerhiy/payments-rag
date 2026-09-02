@@ -13,25 +13,23 @@ choice, same ADR), so the guards work without knowing who anyone is:
   endpoint returns 429 until UTC midnight.
 - Question length is bounded on the request model (api.main.AskRequest).
 
-This module is HTTP policy only (per ADR-0015/0017: the core owns
-persistence, the API layer owns request semantics): it maps ledger state and
-per-IP counters to 429 responses. Spend accounting: /ask records the measured
-LLM cost; eval and health runs pre-charge a flat, deliberately-high estimate
-(charge_flat), so a run that fails halfway can never spend unledgered money.
-Knobs live in payments_rag.config.
+This module is HTTP policy only (per ADR-0015/0017): it maps ledger state and
+per-IP counters (api.rate_limit) to 429 responses. Spend accounting: /ask
+records the measured LLM cost; eval and health runs pre-charge a flat,
+deliberately-high estimate (charge_flat), so a run that fails halfway can
+never spend unledgered money. Knobs live in payments_rag.config.
 """
 
 from __future__ import annotations
 
 import logging
-import threading
 import time
-from collections import defaultdict, deque
 from collections.abc import Callable
 
 import psycopg
 from fastapi import HTTPException, Request
 
+from api.rate_limit import SlidingWindowLimiter
 from payments_rag import config
 from payments_rag.adapters import db
 
@@ -59,50 +57,18 @@ def client_ip(request: Request) -> str:
 
 
 class RateLimiter:
-    """Sliding-window per-IP counter, usable directly as a FastAPI dependency:
-
-        @app.post("/ask")
-        def ask(_: None = Depends(guard.ask_limiter)) -> ...
-
-    `clock` is injectable for tests.
-    """
+    """Per-IP 429 mapping over SlidingWindowLimiter, usable as a FastAPI dependency."""
 
     def __init__(
         self, limit: int, window_s: int = 3600, clock: Callable[[], float] = time.monotonic
     ) -> None:
-        self.limit = limit
-        self.window_s = window_s
-        self._clock = clock
-        self._hits: dict[str, deque[float]] = defaultdict(deque)
-        self._last_sweep = clock()
-        self._lock = threading.Lock()
+        self._limiter = SlidingWindowLimiter(limit, window_s, clock)
 
     def retry_after(self, ip: str) -> int | None:
-        """Count a hit and return None, or seconds to wait if the ip is over the limit."""
-        now = self._clock()
-        with self._lock:
-            hits = self._hits[ip]
-            while hits and now - hits[0] > self.window_s:
-                hits.popleft()
-            if len(hits) >= self.limit:
-                return max(1, int(self.window_s - (now - hits[0])) + 1)
-            hits.append(now)
-            self._maybe_sweep(now)
-            return None
+        return self._limiter.retry_after(ip)
 
     def reset(self) -> None:
-        """Forget all counted hits (tests; not needed in production)."""
-        with self._lock:
-            self._hits.clear()
-
-    def _maybe_sweep(self, now: float) -> None:
-        """Drop stale IPs, at most once per window, to bound memory over months."""
-        if now - self._last_sweep < self.window_s:
-            return
-        self._last_sweep = now
-        stale = [k for k, v in self._hits.items() if not v or now - v[-1] > self.window_s]
-        for key in stale:
-            del self._hits[key]
+        self._limiter.reset()
 
     def __call__(self, request: Request) -> None:
         wait = self.retry_after(client_ip(request))
