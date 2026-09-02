@@ -1,0 +1,100 @@
+# Golden set: SEPA SCT / SCT Inst (corpus/raw/ rulebook PDFs).
+#
+# 20 questions = the 10 from evals/answer_golden_set.yaml (kept verbatim so
+# article-05 and article-06 results stay comparable on the overlap) + 10 new
+# ones mined from the same two rulebooks (source section cited per entry).
+# DRAFT - the 10 new entries need owner review before any scored run.
+
+# --- the original 10 (verbatim from evals/answer_golden_set.yaml) ---
+
+- id: sct-inst-max-execution-time
+  question: "What is the target maximum execution time for an SCT Inst payment?"
+  expected_answer: "5 seconds: the target maximum execution time is at most 5 seconds after the Originator PSP applies the time stamp."
+
+- id: sct-inst-availability
+  question: "Is the SCT Inst scheme available on weekends and public holidays?"
+  expected_answer: "Yes. The scheme is available 24 hours a day, on all calendar days of the year (24/7/365)."
+
+- id: sct-inst-timeout-no-confirmation
+  question: "What must the Originator PSP do if it gets no confirmation within 10 seconds of the time stamp?"
+  expected_answer: "It must immediately restore the Originator's payment account to the state it would have been in had the transaction not taken place."
+
+- id: sct-inst-settlement-certainty
+  question: "How does an SCT Inst achieve upfront settlement certainty for the beneficiary PSP?"
+  expected_answer: "The Originator PSP reserves funds on its account as cover for the transaction, which provides upfront settlement certainty."
+
+- id: sct-inst-currency
+  question: "In what currency are SCT Inst payments executed?"
+  expected_answer: "Euro."
+
+- id: sct-max-execution-time
+  question: "What is the maximum execution time for a standard SCT credit transfer?"
+  expected_answer: "The amount is credited to the Beneficiary PSP's account within one Banking Business Day of receipt of the credit transfer instruction."
+
+- id: sct-charging-principle
+  question: "How are charges shared between the originator and beneficiary in a standard SCT?"
+  expected_answer: "Under the 'SHARE' principle: the Originator and Beneficiary are each charged separately by their own PSP."
+
+- id: sct-remittance-length
+  question: "What is the maximum length of remittance information in a standard SCT?"
+  expected_answer: "140 characters."
+
+- id: sct-recall-deadlines
+  question: "What are the deadlines for an Originator PSP to send a Recall?"
+  expected_answer: "Within 10 Banking Business Days after execution for duplicate sending or technical problems, and within 13 months for fraud."
+
+- id: sct-value-limits
+  question: "Is there a maximum amount for an SCT or SCT Inst transaction?"
+  expected_answer: "There is no maximum amount at scheme level; the technical message format caps a single transaction at 999,999,999.99 euro."
+
+# --- 10 new (mined 2026-09-01 from the same rulebook PDFs) ---
+
+- id: sct-return-deadline
+  question: "How long does the Beneficiary PSP have to send a Return in a standard SCT?"
+  expected_answer: "The 'Return' message must be sent to the Originator PSP at the latest three Banking Business Days after Settlement Date, returning the funds at the same time."
+  # source: sct_rulebook_2025, CT-01.04R
+
+- id: sct-reject-vs-return
+  question: "What determines whether a failed SEPA Credit Transfer is handled as a Reject or a Return?"
+  expected_answer: "Whether the transaction has already been settled at inter-PSP level: before settlement it is a Reject, after settlement it is a Return."
+  # source: sct_rulebook_2025, ERI option handling text ("as a Reject or as a Return depending if the transaction has already been settled")
+
+- id: sct-recall-response-deadline
+  question: "How long does the Beneficiary PSP have to respond to a Recall?"
+  expected_answer: "15 Banking Business Days; if the Beneficiary hasn't responded within that period, the Beneficiary PSP must send a negative response with the reason 'No response from the Beneficiary'."
+  # source: sct_rulebook_2025, Recall procedure
+
+- id: sct-recall-count
+  question: "How many Recalls may be sent for a given SEPA Credit Transfer transaction?"
+  expected_answer: "Only one Recall can be sent for a given transaction."
+  # source: sct_rulebook_2025, Recall procedure
+
+- id: sct-recall-path
+  question: "Which routing path must a Recall use?"
+  expected_answer: "The path used for initiating the Recall should be identical to the one used for the initial SEPA Credit Transfer transaction."
+  # source: sct_rulebook_2025, Recall procedure
+
+- id: sct-inquiry-reasons
+  question: "What are the reasons for which an SCT inquiry can be launched?"
+  expected_answer: "Two reasons: a claim of non-receipt (the Beneficiary claims not to have received the transfer) and a claim for value date correction."
+  # source: sct_rulebook_2025, section 4.4.1 + figures 6-7
+
+- id: sct-return-amount
+  question: "What amount is transferred in a Return?"
+  expected_answer: "The Original Amount of the Credit Transfer instruction."
+  # source: sct_rulebook_2025, "main characteristics of a Return"
+
+- id: sct-account-currency
+  question: "Do the Originator's and Beneficiary's payment accounts have to be in euro?"
+  expected_answer: "No - the accounts may be in euro or any other currency; any currency conversion is executed in the Originator PSP or Beneficiary PSP and is not governed by the scheme."
+  # source: sct_rulebook_2025, section 2.4
+
+- id: sct-inst-timestamp
+  question: "What does the Time Stamp in an SCT Inst transaction message indicate?"
+  expected_answer: "The Time of Receipt - the Originator PSP indicates the time of receipt as the Time Stamp in the SCT Inst transaction message transmitted into the inter-PSP space."
+  # source: sct_inst_rulebook_2025, process step 1
+
+- id: sct-inst-beneficiary-obligation
+  question: "What must the Beneficiary PSP do upon receiving an SCT Inst transaction?"
+  expected_answer: "Immediately make the funds available to the Beneficiary identified by the IBAN in the transaction, and send a confirmation message (positive or negative)."
+  # source: sct_inst_rulebook_2025, Beneficiary PSP obligations

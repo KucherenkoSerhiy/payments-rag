@@ -19,6 +19,12 @@ corpus/raw/*
 corpus/processed/*
 !corpus/processed/.gitkeep
 
+# Topic corpora (article-06 model matrix): same policy - third-party content
+# (WHO fact sheets, GNU GPL FAQ, vendor guides) is fetched and converted
+# locally by scripts/fetch_topic_corpus.py + scripts/convert_topic_corpus.py,
+# never committed. Only our own golden sets and code are.
+corpus/topics/
+
 # Personal logs (per checklists.md these may be kept local)
 retro-inbox.md
 session-log.md

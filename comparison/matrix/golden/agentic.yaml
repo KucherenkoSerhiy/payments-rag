@@ -1,0 +1,109 @@
+# Golden set: agentic workflows (Anthropic "Building effective agents", OpenAI
+# "A practical guide to building agents", LangGraph docs -
+# corpus/topics/agentic/).
+#
+# 20 questions. Reference answers grounded in the exact corpus text (source
+# cited per entry). Note several questions hinge on which SOURCE defines a
+# term - the corpus deliberately contains two vendors' overlapping-but-distinct
+# framings, which is realistic for a company knowledge base.
+# DRAFT - owner review required before any scored run.
+
+- id: ag-workflow-vs-agent
+  question: "What is the architectural distinction between workflows and agents?"
+  expected_answer: "Workflows are systems where LLMs and tools are orchestrated through predefined code paths; agents are systems where LLMs dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks."
+  # source: anthropic-building-effective-agents.txt, "What are agents?"; langgraph-workflows-agents.md agrees
+
+- id: ag-when-not-agents
+  question: "When should you NOT build an agentic system?"
+  expected_answer: "When a simpler solution suffices - agentic systems trade latency and cost for task performance, and for many applications optimizing single LLM calls with retrieval and in-context examples is enough. Find the simplest solution possible and only add complexity when needed."
+  # source: anthropic-building-effective-agents.txt, "When (and when not) to use agents"
+
+- id: ag-augmented-llm
+  question: "What is the basic building block of agentic systems?"
+  expected_answer: "The augmented LLM - an LLM enhanced with augmentations such as retrieval, tools, and memory."
+  # source: anthropic-building-effective-agents.txt, "Building block: The augmented LLM"
+
+- id: ag-prompt-chaining
+  question: "What is the prompt chaining workflow and what does it trade off?"
+  expected_answer: "It decomposes a task into a sequence of steps where each LLM call processes the previous one's output, optionally with programmatic checks ('gates') between steps. It trades latency for higher accuracy by making each call an easier task."
+  # source: anthropic-building-effective-agents.txt, "Workflow: Prompt chaining"
+
+- id: ag-routing
+  question: "When does the routing workflow work well?"
+  expected_answer: "For complex tasks with distinct categories better handled separately, where classification can be handled accurately - e.g. directing customer-service query types to different processes, or routing easy questions to smaller cost-efficient models and hard ones to more capable models."
+  # source: anthropic-building-effective-agents.txt, "Workflow: Routing"
+
+- id: ag-parallelization-variants
+  question: "What are the two variations of the parallelization workflow?"
+  expected_answer: "Sectioning - breaking a task into independent subtasks run in parallel - and voting - running the same task multiple times to get diverse outputs."
+  # source: anthropic-building-effective-agents.txt, "Workflow: Parallelization"
+
+- id: ag-orchestrator-vs-parallel
+  question: "What is the key difference between the orchestrator-workers workflow and parallelization?"
+  expected_answer: "Flexibility: in orchestrator-workers the subtasks aren't pre-defined but determined dynamically by the orchestrator based on the specific input, whereas parallelization runs pre-defined subtasks."
+  # source: anthropic-building-effective-agents.txt, "Workflow: Orchestrator-workers"
+
+- id: ag-evaluator-optimizer
+  question: "When is the evaluator-optimizer workflow a good fit?"
+  expected_answer: "When there are clear evaluation criteria and iterative refinement provides measurable value - the two signs of fit are that responses demonstrably improve with articulated feedback, and that an LLM can provide such feedback."
+  # source: anthropic-building-effective-agents.txt, "Workflow: Evaluator-optimizer"
+
+- id: ag-anthropic-principles
+  question: "What three core principles does Anthropic recommend when implementing agents?"
+  expected_answer: "Maintain simplicity in the agent's design; prioritize transparency by explicitly showing planning steps; carefully craft the agent-computer interface (ACI) through thorough tool documentation and testing."
+  # source: anthropic-building-effective-agents.txt, "Summary"
+
+- id: ag-aci
+  question: "What is an agent-computer interface (ACI) and how much effort should it get?"
+  expected_answer: "The interface between the agent and its tools - tool definitions, parameters and documentation. It deserves as much prompt-engineering effort as human-computer interfaces get: clear descriptions, example usage, edge cases, and 'poka-yoke' argument design that makes mistakes harder."
+  # source: anthropic-building-effective-agents.txt, Appendix 2
+
+- id: ag-openai-components
+  question: "According to OpenAI's guide, what are the three core components of an agent?"
+  expected_answer: "Model (the LLM powering reasoning and decision-making), tools (external functions or APIs used to take action), and instructions (explicit guidelines and guardrails defining behaviour)."
+  # source: openai-practical-guide-agents.txt, "Agent design foundations"
+
+- id: ag-openai-tool-types
+  question: "What three types of tools do agents need according to OpenAI's guide?"
+  expected_answer: "Data tools (retrieve context and information), action tools (interact with systems - update records, send messages), and orchestration tools (agents themselves serving as tools for other agents)."
+  # source: openai-practical-guide-agents.txt, "Defining tools"
+
+- id: ag-openai-when-agent
+  question: "What kinds of workflows does OpenAI's guide say to prioritize when evaluating agent use cases?"
+  expected_answer: "Workflows that resisted automation: complex decision-making (nuanced judgment, exceptions), difficult-to-maintain rule systems, and heavy reliance on unstructured data (natural language, documents, conversation)."
+  # source: openai-practical-guide-agents.txt, "When should you build an agent?"
+
+- id: ag-openai-model-selection
+  question: "What model-selection approach does OpenAI's guide recommend for agents?"
+  expected_answer: "Prototype with the most capable model for every task to establish a performance baseline, then try swapping in smaller models to see where they still achieve acceptable results - set up evals, meet the accuracy target with the best models, then optimize cost and latency."
+  # source: openai-practical-guide-agents.txt, "Selecting your models"
+
+- id: ag-openai-multiagent-patterns
+  question: "What are the two multi-agent orchestration patterns in OpenAI's guide?"
+  expected_answer: "The manager pattern - a central manager agent coordinates specialized agents via tool calls - and the decentralized pattern - peer agents hand off execution to one another."
+  # source: openai-practical-guide-agents.txt, "Multi-agent systems"
+
+- id: ag-openai-when-split
+  question: "When does OpenAI's guide say to split a single agent into multiple agents?"
+  expected_answer: "Maximize a single agent's capabilities first; split when it fails to follow complicated instructions or consistently picks wrong tools - concretely, for complex conditional logic in prompts, or tool overload where the issue is tool similarity/overlap rather than count."
+  # source: openai-practical-guide-agents.txt, "When to consider creating multiple agents"
+
+- id: ag-openai-handoff
+  question: "What is a handoff in the decentralized multi-agent pattern?"
+  expected_answer: "A one-way transfer that lets an agent delegate to another agent - implemented as a type of tool; when called, execution starts on the new agent immediately, transferring the latest conversation state."
+  # source: openai-practical-guide-agents.txt, "Decentralized pattern"
+
+- id: ag-openai-guardrails
+  question: "Name some guardrail types from OpenAI's guide for agents."
+  expected_answer: "Relevance classifier, safety classifier (jailbreak/prompt-injection detection), PII filter, moderation, tool safeguards (risk-rating tools), rules-based protections (blocklists, input limits, regex), and output validation."
+  # source: openai-practical-guide-agents.txt, "Types of guardrails"
+
+- id: ag-openai-human-intervention
+  question: "What two triggers typically warrant human intervention in an agent, per OpenAI's guide?"
+  expected_answer: "Exceeding failure thresholds (retries or actions beyond set limits) and high-risk actions (sensitive, irreversible, or high-stakes actions like canceling orders, authorizing large refunds, or making payments)."
+  # source: openai-practical-guide-agents.txt, "Plan for human intervention"
+
+- id: ag-langgraph-send
+  question: "What does LangGraph's Send API let an orchestrator do?"
+  expected_answer: "Dynamically create worker nodes and send each specific inputs; each worker has its own state, and all worker outputs are written to a shared state key accessible to the orchestrator for synthesis."
+  # source: langgraph-workflows-agents.md, "Creating workers in LangGraph"

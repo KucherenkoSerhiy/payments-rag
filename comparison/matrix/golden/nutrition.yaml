@@ -1,0 +1,108 @@
+# Golden set: nutrition & health (WHO fact sheets, corpus/topics/nutrition/).
+#
+# 20 questions. Reference answers are grounded in the exact corpus text (each
+# entry cites its source file). This topic was chosen deliberately as the one
+# richest in confident-but-wrong pretrained beliefs: several questions are
+# myth-busts where the model's training prior may contradict the corpus.
+# DRAFT - owner review required before any scored run (same rule as
+# evals/answer_golden_set.yaml).
+
+- id: nut-free-sugar-limit
+  question: "How much free sugar per day does the WHO say an adult should consume at most?"
+  expected_answer: "Less than 10% of total daily energy intake - about 50 g (roughly 12 level teaspoons) for a healthy-weight person on ~2000 calories a day. Limiting to 5% or less may provide additional health benefits."
+  # source: who-healthy-diet.txt, "Sugars"
+
+- id: nut-sweeteners-replacement
+  question: "Should you use non-sugar sweeteners like aspartame or stevia to reduce your sugar intake?"
+  expected_answer: "No. WHO says reducing free-sugar consumption should be accomplished without the use of non-sugar sweeteners (such as acesulfame K, aspartame, sucralose, stevia and others)."
+  # source: who-healthy-diet.txt, "Sugars" - myth-bust: models often present sweeteners as the recommended swap
+
+- id: nut-fruit-juice-free-sugars
+  question: "Does fruit juice without added sugar still count as free sugars?"
+  expected_answer: "Yes. Sugars naturally present in honey, syrups, fruit juices and fruit juice concentrates count as free sugars, so even juice without added sugar contains significant free sugars and its consumption should be limited."
+  # source: who-healthy-diet.txt, "Sugars" + "Carbohydrates" - myth-bust
+
+- id: nut-salt-limit
+  question: "What is the WHO recommended maximum daily salt intake for adults?"
+  expected_answer: "Less than 5 grams of salt per day (equivalent to less than 2000 mg of sodium), which is just under a teaspoon."
+  # source: who-salt-reduction.txt, "Recommendations for reducing sodium"
+
+- id: nut-global-sodium-intake
+  question: "How does actual global sodium consumption compare to the WHO recommendation?"
+  expected_answer: "The global mean adult intake was 4278 mg/day of sodium (about 11 g of salt) in 2021 - more than double the WHO recommendation of less than 2000 mg/day."
+  # source: who-salt-reduction.txt, "Key facts"
+
+- id: nut-salt-substitutes
+  question: "What does the WHO suggest for people who use table salt at home?"
+  expected_answer: "Replacing regular table salt with lower-sodium salt substitutes that contain potassium; all salt consumed should also be iodized."
+  # source: who-salt-reduction.txt, "Recommendations for reducing sodium"
+
+- id: nut-ruminant-trans-fat
+  question: "Are naturally occurring trans fats from meat and dairy safer than industrially produced trans fats?"
+  expected_answer: "No. Both industrially produced and naturally occurring (ruminant) trans fats are equally harmful."
+  # source: who-trans-fat.txt, "Key facts" + "About trans fats" - myth-bust: "natural = safer" prior
+
+- id: nut-trans-fat-limit
+  question: "What is the WHO limit on trans fat consumption?"
+  expected_answer: "Less than 1% of total energy intake - under 2.2 g per day on a 2000-calorie diet."
+  # source: who-trans-fat.txt, "Key facts"
+
+- id: nut-trans-fat-policy
+  question: "What are the two best-practice policies WHO recommends for eliminating industrial trans fat?"
+  expected_answer: "1) A mandatory national limit of 2 grams of industrially produced trans fat per 100 grams of total fat in all foods; 2) a mandatory national ban on the production or use of partially hydrogenated oils as an ingredient in all foods."
+  # source: who-trans-fat.txt, "What governments do"
+
+- id: nut-saturated-fat-limit
+  question: "How much saturated fat does the WHO say adults should consume at most?"
+  expected_answer: "No more than 10% of total energy intake should come from saturated fat; lower intakes may have additional benefits."
+  # source: who-healthy-diet.txt, "Fats"
+
+- id: nut-total-fat-range
+  question: "What share of daily energy should come from fat according to the WHO?"
+  expected_answer: "A minimum of 15% of daily energy should come from fat (two essential fatty acids can only be obtained from the diet), and limiting total fat to 30% or less helps prevent unhealthy weight gain in adults."
+  # source: who-healthy-diet.txt, "Fats" - nuance: there is a MINIMUM, not just a cap
+
+- id: nut-fruit-veg-target
+  question: "How many grams of fruit and vegetables per day does the WHO recommend?"
+  expected_answer: "At least 400 grams per day for everyone older than 10; for children, at least 250 g (ages 2-5) or 350 g (ages 6-9)."
+  # source: who-healthy-diet.txt, "Carbohydrates"
+
+- id: nut-fibre-target
+  question: "What is the WHO daily target for dietary fibre?"
+  expected_answer: "At least 25 grams of naturally-occurring dietary fibre per day for everyone older than 10; at least 15 g (ages 2-5) or 21 g (ages 6-9) for younger children."
+  # source: who-healthy-diet.txt, "Carbohydrates"
+
+- id: nut-carb-share
+  question: "What proportion of daily energy should come from carbohydrates?"
+  expected_answer: "Approximately 45-75% of total daily energy, coming primarily from whole grains, vegetables, fruits and pulses."
+  # source: who-healthy-diet.txt, "Carbohydrates"
+
+- id: nut-four-principles
+  question: "What are the four core principles of a healthy diet according to the WHO?"
+  expected_answer: "Adequacy (meeting nutrient needs without exceeding them), balance (energy intake balanced with expenditure), moderation (limited intake of potentially detrimental foods) and diversity (a wide variety of nutritious foods)."
+  # source: who-healthy-diet.txt, "Key facts" + "Overview"
+
+- id: nut-activity-minimum
+  question: "How much physical activity per week does the WHO recommend for adults?"
+  expected_answer: "At least 150 minutes of moderate-intensity physical activity per week (or 75 minutes of vigorous aerobic activity)."
+  # source: who-physical-activity.txt, "Levels of physical inactivity globally"; who-hypertension.txt, "Prevention"
+
+- id: nut-inactivity-risk
+  question: "How much does insufficient physical activity increase the risk of death?"
+  expected_answer: "People who are insufficiently active have a 20% to 30% increased risk of death compared to people who are sufficiently active."
+  # source: who-physical-activity.txt, "Benefits of physical activity..."
+
+- id: nut-hypertension-diagnosis
+  question: "At what blood pressure readings is hypertension diagnosed?"
+  expected_answer: "When measured on two different days, systolic readings on both days of 140 mmHg or higher and/or diastolic readings on both days of 90 mmHg or higher."
+  # source: who-hypertension.txt, "Overview" - nuance: the two-different-days condition
+
+- id: nut-hypertension-symptoms
+  question: "Can you rely on symptoms to know whether you have high blood pressure?"
+  expected_answer: "No. Most people with hypertension don't feel any symptoms; the only way to know is to have blood pressure checked."
+  # source: who-hypertension.txt, "Symptoms" - myth-bust: "you'd feel it"
+
+- id: nut-obesity-definition
+  question: "How does the WHO define overweight and obesity in adults?"
+  expected_answer: "By body mass index (BMI = weight in kg divided by height in metres squared): overweight is a BMI of 25 or higher, obesity is a BMI of 30 or higher."
+  # source: who-obesity-overweight.txt, "Definition of overweight and obesity"

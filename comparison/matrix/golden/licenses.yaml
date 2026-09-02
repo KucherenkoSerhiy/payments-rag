@@ -1,0 +1,107 @@
+# Golden set: open-source licenses (SPDX license texts + GNU GPL FAQ,
+# corpus/topics/licenses/).
+#
+# 20 questions. Reference answers grounded in the exact corpus text (source
+# cited per entry). Mix of plain-factual and genuinely-confusable questions
+# (GPL vs AGPL network use, GPLv2/v3 compatibility, output-of-GPL-programs).
+# DRAFT - owner review required before any scored run.
+
+- id: lic-mit-obligation
+  question: "What must you preserve when redistributing software under the MIT license?"
+  expected_answer: "The copyright notice and the permission notice must be included in all copies or substantial portions of the software."
+  # source: MIT.txt
+
+- id: lic-mit-share-mods
+  question: "Does the MIT license require you to share your modifications?"
+  expected_answer: "No. MIT imposes no obligation to publish modifications; it only requires keeping the copyright and permission notices in copies or substantial portions."
+  # source: MIT.txt (absence of any such condition) - confusable with copyleft licenses
+
+- id: lic-bsd3-third-clause
+  question: "What does the third clause of the BSD-3-Clause license prohibit?"
+  expected_answer: "Using the name of the copyright holder or the names of its contributors to endorse or promote products derived from the software without specific prior written permission."
+  # source: BSD-3-Clause.txt, clause 3
+
+- id: lic-apache-patent
+  question: "Does the Apache-2.0 license include a patent grant?"
+  expected_answer: "Yes. Each contributor grants a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable patent license covering claims necessarily infringed by their contribution alone or combined with the work."
+  # source: Apache-2.0.txt, section 3
+
+- id: lic-apache-patent-retaliation
+  question: "What happens to your Apache-2.0 patent license if you sue over patents?"
+  expected_answer: "If you institute patent litigation (including a cross-claim or counterclaim) alleging the work constitutes patent infringement, the patent licenses granted to you under Apache-2.0 for that work terminate as of the date the litigation is filed."
+  # source: Apache-2.0.txt, section 3
+
+- id: lic-apache-modified-files
+  question: "When redistributing modified files under Apache-2.0, what notice is required?"
+  expected_answer: "Modified files must carry prominent notices stating that you changed the files; recipients must also get a copy of the license."
+  # source: Apache-2.0.txt, section 4(a)-(b)
+
+- id: lic-gpl-sell
+  question: "Does the GPL allow selling copies of the program for money?"
+  expected_answer: "Yes. The right to sell copies is part of the definition of free software, and with one exception (the required written offer for source accompanying binary-only releases) there is no limit on the price."
+  # source: gpl-faq.txt, #DoesTheGPLAllowMoney; GPL-3.0-only.txt section 4 - myth-bust: "GPL = non-commercial"
+
+- id: lic-gpl-output
+  question: "Is the output people produce with a GPL-licensed program automatically covered by the GPL?"
+  expected_answer: "In general, no - copyright law gives the program's author no say over output users make from their own data; the output is covered only if substantial parts of it are copied from text in the program itself."
+  # source: gpl-faq.txt, #GPLOutput - confusable
+
+- id: lic-gpl-saas
+  question: "A company runs a modified GPL-licensed program on its web site. Must it release its modified sources?"
+  expected_answer: "No. The GPL permits making and using a modified version without ever distributing it, so running it on a web site does not trigger source release. The situation is different only under the GNU Affero GPL."
+  # source: gpl-faq.txt, #UnreleasedMods - the classic GPL-vs-AGPL SaaS confusion
+
+- id: lic-agpl-network
+  question: "What extra obligation does the AGPL add compared to the GPL?"
+  expected_answer: "If you modify the program, your modified version must prominently offer all users interacting with it remotely through a computer network an opportunity to receive its Corresponding Source, via a network server at no charge."
+  # source: AGPL-3.0-only.txt, section 13
+
+- id: lic-gpl-v2v3-compat
+  question: "Is GPLv3 compatible with GPLv2?"
+  expected_answer: "No - the two licenses are incompatible; combining GPLv2-only code with GPLv3 code violates GPLv2. However, code released under GPL 'version 2 or later' is compatible with GPLv3."
+  # source: gpl-faq.txt, #v2v3Compatibility - myth-bust: widely assumed compatible
+
+- id: lic-gpl-system-library
+  question: "Can a GPL program be linked with a proprietary system library?"
+  expected_answer: "Yes, both GPL versions have a 'system library' exception to their copyleft: if a GPL-incompatible library meets the criteria for a system library, the requirement to distribute source for the whole program does not include that library."
+  # source: gpl-faq.txt, #SystemLibraryException
+
+- id: lic-gpl-price
+  question: "Under GPLv3, can you charge for conveying copies of a covered work?"
+  expected_answer: "Yes - you may charge any price or no price for each copy you convey, and you may offer support or warranty protection for a fee."
+  # source: GPL-3.0-only.txt, section 4
+
+- id: lic-gpl-installation-info
+  question: "What is 'Installation Information' in GPLv3 and when must it be provided?"
+  expected_answer: "The methods, procedures, authorization keys or other information required to install and run modified versions on a User Product. It must accompany the Corresponding Source when object code is conveyed in or for use in a User Product where possession is transferred - unless nobody retains the ability to install modified code (e.g. installed in ROM)."
+  # source: GPL-3.0-only.txt, section 6 (anti-tivoization)
+
+- id: lic-gplv2-installation-info
+  question: "Does GPLv2 have the same installation-information requirement as GPLv3?"
+  expected_answer: "Not fully. GPLv2 requires the scripts used to control compilation and installation of the executable, which covers part but not all of what GPLv3 calls Installation Information - GPLv3's requirement is stronger."
+  # source: gpl-faq.txt, #InstInfo
+
+- id: lic-mpl-larger-work
+  question: "Does the MPL-2.0 allow combining covered code with proprietary code?"
+  expected_answer: "Yes. A 'Larger Work' combines Covered Software with other material in separate files, and you may distribute a Larger Work under terms of your choice, provided you still comply with the MPL for the Covered Software itself."
+  # source: MPL-2.0.txt, sections 1.7 and 3.3 (file-level copyleft)
+
+- id: lic-gpl-nonfree-libs
+  question: "Can you write free software that uses nonfree libraries?"
+  expected_answer: "You can, but the FSF discourages it: the program won't be fully usable in a free environment, and there may also be legal issues combining certain nonfree libraries with GPL-covered software. If it's already written, they suggest releasing it anyway and noting the drawback."
+  # source: gpl-faq.txt, #FSWithNFLibs
+
+- id: lic-gpl-download-fee
+  question: "Under GPLv3, if you charge a fee to download binaries, what applies to the source code?"
+  expected_answer: "You must offer equivalent access to the source code in the same way, through the same place, at no further charge."
+  # source: gpl-faq.txt, #DoesTheGPLAllowDownloadFee
+
+- id: lic-gpl-meaning
+  question: "What does 'GPL' stand for?"
+  expected_answer: "General Public License; the most widespread such license is the GNU General Public License, or GNU GPL."
+  # source: gpl-faq.txt, #WhatDoesGPLStandFor
+
+- id: lic-agpl-gpl-combine
+  question: "Can AGPLv3-covered code be combined with GPLv3-covered code?"
+  expected_answer: "Yes. AGPLv3 explicitly permits linking or combining a covered work with a GPLv3-licensed work into a single combined work; each license continues to govern its own part."
+  # source: AGPL-3.0-only.txt, section 13, second paragraph
