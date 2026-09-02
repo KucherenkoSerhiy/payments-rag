@@ -28,6 +28,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from comparison.caching import load_existing
 from comparison.logging_setup import get_logger
 from comparison.schema import read_jsonl
 from evals.ragas_metrics import score_one
@@ -47,18 +48,6 @@ METRICS = ("faithfulness", "answer_relevancy", "context_precision", "context_rec
 log = get_logger("comparison.score")
 
 
-def _load_existing(path: Path) -> dict[tuple[str, str], dict]:
-    if not path.exists():
-        return {}
-    existing = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        row = json.loads(line)
-        existing[(row["system"], row["question_id"])] = row
-    return existing
-
-
 def _is_complete(row: dict) -> bool:
     return all(row.get(k) is not None and row[k] == row[k] for k in METRICS)  # nan != nan
 
@@ -74,7 +63,7 @@ def _mean(values: list[float]) -> float:
 
 
 def run() -> None:
-    existing = _load_existing(OUT)
+    existing = load_existing(OUT)
     all_rows: list[dict] = []
     summary: dict[str, dict] = {}
 

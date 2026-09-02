@@ -23,6 +23,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from comparison.caching import load_existing
 from comparison.logging_setup import get_logger
 from comparison.schema import read_jsonl
 from evals.judge import judge
@@ -41,24 +42,12 @@ OUT = DATA_DIR / "judge_scores.jsonl"
 log = get_logger("comparison.judge")
 
 
-def _load_existing(path: Path) -> dict[tuple[str, str], dict]:
-    if not path.exists():
-        return {}
-    existing = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        row = json.loads(line)
-        existing[(row["system"], row["question_id"])] = row
-    return existing
-
-
 def _content_hash(answer: str) -> str:
     return hashlib.sha256(answer.encode("utf-8")).hexdigest()[:16]
 
 
 def run() -> None:
-    existing = _load_existing(OUT)
+    existing = load_existing(OUT)
     all_rows: list[dict] = []
     summary: dict[str, dict] = {}
 

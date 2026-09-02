@@ -9,10 +9,17 @@ not in the production `adapters/`. Structured output guarantees a clean
 from __future__ import annotations
 
 import json
+import logging
 
 from openai import OpenAI
 
 from payments_rag import config
+
+logger = logging.getLogger(__name__)
+
+# gpt-4o list prices, USD per 1M tokens - same figures the comparison adapters use.
+INPUT_COST_PER_MTOK = 2.5
+OUTPUT_COST_PER_MTOK = 10.0
 
 _GRADE_SCHEMA = {
     "type": "object",
@@ -62,4 +69,15 @@ def judge(question: str, expected: str, actual: str) -> tuple[int, str]:
         },
     )
     data = json.loads(resp.choices[0].message.content)
+    if resp.usage:
+        logger.info(
+            "judge call: %d in / %d out tokens, ~$%.5f",
+            resp.usage.prompt_tokens,
+            resp.usage.completion_tokens,
+            judge_cost_usd(resp.usage.prompt_tokens, resp.usage.completion_tokens),
+        )
     return int(data["score"]), data["critique"]
+
+
+def judge_cost_usd(prompt_tokens: int, completion_tokens: int) -> float:
+    return (prompt_tokens * INPUT_COST_PER_MTOK + completion_tokens * OUTPUT_COST_PER_MTOK) / 1_000_000
