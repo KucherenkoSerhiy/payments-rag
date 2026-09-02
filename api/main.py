@@ -2,8 +2,9 @@
 
     uv run uvicorn api.main:app --reload    # or: python -m uvicorn api.main:app
 
-The core (orchestrator, retrieval, evals, query_log, health) is unchanged; this
-is a thin HTTP layer over it. Interactive docs at /docs.
+Routes only: /ask delegates to the answering service
+(payments_rag.answering.service), everything else reads the core directly.
+Interactive docs at /docs.
 
 For the public deploy (ADR-0018) requests pass the wallet guard (api/guard.py)
 and the built Angular SPA is served from this same origin (api/spa.py).
@@ -12,7 +13,6 @@ and the built Angular SPA is served from this same origin (api/spa.py).
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -24,9 +24,7 @@ from api import guard, spa
 from evals import retrieval_eval
 from payments_rag import config, health, query_log
 from payments_rag.adapters import db
-from payments_rag.orchestrator import answer
-
-logger = logging.getLogger(__name__)
+from payments_rag.answering import service
 
 _ROOT = Path(__file__).resolve().parent.parent
 _DATA = _ROOT / "data"
@@ -50,24 +48,7 @@ class AskRequest(BaseModel):
 def ask(req: AskRequest, _: None = Depends(guard.ask_limiter)) -> dict:
     with db.connect() as conn:
         guard.check_budget(conn)
-        result = answer(conn, req.question, k=req.k)
-        try:
-            db.wallet_add_spend(conn, result.cost_usd)
-        except Exception as exc:
-            # The answer is already paid for; a ledger hiccup must not 500 it.
-            logger.warning("spend not recorded (%.6f USD): %s", result.cost_usd, exc)
-    query_log.log_query(
-        req.question,
-        mode="vector",
-        k=req.k,
-        wall_s=result.retrieval_s + result.generation_s,
-        retrieval_s=result.retrieval_s,
-        generation_s=result.generation_s,
-        n_citations=len(result.citations),
-        cost_usd=result.cost_usd,
-        input_tokens=result.input_tokens,
-        output_tokens=result.output_tokens,
-    )
+        result = service.ask(conn, req.question, k=req.k)
     return {
         "answer": result.answer,
         "citations": [

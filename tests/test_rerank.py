@@ -6,7 +6,7 @@ import pytest
 
 from payments_rag.retrieval import rerank
 from payments_rag.retrieval.rerank import order_by_relevance
-from payments_rag.retrieval.retriever import RetrievedChunk
+from payments_rag.domain import RetrievedChunk
 
 
 def _chunk(cid: int) -> RetrievedChunk:

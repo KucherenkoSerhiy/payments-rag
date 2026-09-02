@@ -20,8 +20,8 @@ import pytest
 
 from payments_rag import config
 from payments_rag.adapters import db
+from payments_rag.answering.orchestrator import answer
 from payments_rag.indexing.indexer import CorpusIndexer
-from payments_rag.orchestrator import answer
 
 SAMPLE_NAME = "smoke_sample.pdf"
 SAMPLE_LINES = [

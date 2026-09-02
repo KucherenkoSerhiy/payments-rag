@@ -9,7 +9,7 @@ from __future__ import annotations
 import psycopg
 
 from comparison.schema import SystemAnswer
-from payments_rag import orchestrator
+from payments_rag.answering import orchestrator
 
 
 def answer(conn: psycopg.Connection, question_id: str, question: str, ground_truth: str) -> SystemAnswer:

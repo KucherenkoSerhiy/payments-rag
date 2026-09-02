@@ -26,7 +26,7 @@ import yaml  # noqa: E402
 from payments_rag import config  # noqa: E402
 from payments_rag.adapters import db  # noqa: E402
 from payments_rag.adapters.embedding import embed_one  # noqa: E402
-from payments_rag.orchestrator import answer  # noqa: E402
+from payments_rag.answering.orchestrator import answer  # noqa: E402
 
 OUT = Path("docs/measurements")
 OUT.mkdir(parents=True, exist_ok=True)

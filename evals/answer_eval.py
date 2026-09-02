@@ -22,7 +22,7 @@ import yaml
 
 from evals.judge import judge
 from payments_rag.adapters import db
-from payments_rag.orchestrator import answer
+from payments_rag.answering.orchestrator import answer
 
 DEFAULT_GOLDEN = str(Path(__file__).resolve().parent / "answer_golden_set.yaml")
 PASS_THRESHOLD = 70

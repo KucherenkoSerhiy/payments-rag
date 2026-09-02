@@ -6,8 +6,8 @@ No DB and no API: `answer` is exercised with `retrieve`, `build_prompt`, and
 
 from __future__ import annotations
 
-from payments_rag.orchestrator import AnswerResult, Citation, answer, build_prompt
-from payments_rag.retrieval.retriever import RetrievedChunk
+from payments_rag.answering.orchestrator import answer, build_prompt
+from payments_rag.domain import AnswerResult, Citation, RetrievedChunk
 
 CHUNKS = [
     RetrievedChunk(id=42, source="a.pdf", page=26, text="Settlement is 5 seconds.", distance=0.1),
@@ -28,8 +28,8 @@ def test_build_prompt_has_labeled_structure_and_tagged_chunks() -> None:
 
 
 def test_answer_maps_cited_ids_and_ignores_invented_ones(monkeypatch) -> None:
-    monkeypatch.setattr("payments_rag.orchestrator.retrieve", lambda conn, q, k=5: CHUNKS)
-    monkeypatch.setattr("payments_rag.orchestrator.build_prompt", lambda q, chunks: "PROMPT")
+    monkeypatch.setattr("payments_rag.answering.orchestrator.retrieve", lambda conn, q, k=5: CHUNKS)
+    monkeypatch.setattr("payments_rag.answering.orchestrator.build_prompt", lambda q, chunks: "PROMPT")
     monkeypatch.setattr(
         "payments_rag.adapters.llm.complete_json",
         lambda prompt: (

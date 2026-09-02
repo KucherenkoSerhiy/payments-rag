@@ -8,22 +8,12 @@ means a bad result can be diagnosed as a retrieval failure vs a generation one.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import psycopg
 
 from payments_rag.adapters import db
 from payments_rag.adapters.embedding import embed_one
+from payments_rag.domain import RetrievedChunk
 from payments_rag.retrieval.fusion import reciprocal_rank_fusion
-
-
-@dataclass
-class RetrievedChunk:
-    id: int
-    source: str
-    page: int | None
-    text: str
-    distance: float  # cosine distance, 0 = identical direction
 
 
 def retrieve(

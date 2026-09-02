@@ -22,8 +22,8 @@ from __future__ import annotations
 import psycopg
 
 from payments_rag.adapters import reranker
+from payments_rag.domain import RetrievedChunk
 from payments_rag.retrieval import retriever
-from payments_rag.retrieval.retriever import RetrievedChunk
 
 
 def rerank_retrieve(

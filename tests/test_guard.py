@@ -15,7 +15,7 @@ from api import guard
 from api.main import app
 from payments_rag import config
 from payments_rag.adapters import db
-from payments_rag.orchestrator import AnswerResult
+from payments_rag.domain import AnswerResult
 
 
 @pytest.fixture(autouse=True)
@@ -92,9 +92,9 @@ def test_ask_hits_rate_limit_with_friendly_429(monkeypatch) -> None:
 
     monkeypatch.setattr("api.main.db.connect", lambda: FakeConn())
     monkeypatch.setattr("api.main.guard.check_budget", lambda conn: None)
-    monkeypatch.setattr("api.main.db.wallet_add_spend", lambda conn, usd: None)
-    monkeypatch.setattr("api.main.answer", lambda conn, q, k=5: result)
-    monkeypatch.setattr("api.main.query_log.log_query", lambda *a, **kw: None)
+    monkeypatch.setattr("payments_rag.answering.service.db.wallet_add_spend", lambda conn, usd: None)
+    monkeypatch.setattr("payments_rag.answering.service.answer", lambda conn, q, k=5: result)
+    monkeypatch.setattr("payments_rag.answering.service.query_log.log_query", lambda *a, **kw: None)
 
     client = TestClient(app)
     assert client.post("/ask", json={"question": "q"}).status_code == 200
