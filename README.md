@@ -115,6 +115,7 @@ top‑k; see the [retrieval-quality playbook](docs/retrieval-quality-playbook.md
 | `frontend/` | Angular SPA (the four views) |
 | `evals/` | Golden sets + retrieval/answer eval harnesses |
 | `comparison/` | Six-system RAG comparison harness ([report](docs/comparison-report.md)) |
+| `comparison/matrix/` | Model-matrix experiment: 6 embedder/generator pipelines x 4 topics x 3 judges ([ADR-0021](docs/adr/0021-model-matrix-eval-only.md)) |
 | `scripts/` | `smoke_live.py`: pre-push end-to-end check against real DB + APIs |
 | `docs/` | ADRs, the retrieval playbook, the comparison report, glossary |
 | `infra/` | `docker-compose.yml` + `init.sql` (Postgres + pgvector) |
