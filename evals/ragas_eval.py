@@ -2,7 +2,7 @@
 relevancy, context precision, and context recall.
 
 Reuses `data/comparison/payments_rag.jsonl` (written by
-`comparison.collect_payments_rag`, the same golden-set run `evals.answer_eval`
+`comparison.collect.payments_rag`, the same golden-set run `evals.answer_eval`
 uses) rather than re-querying the LLM: RAGAS needs the *same* system to answer
 either way, and re-collecting would just spend Claude tokens twice for the
 identical result. Run the collector first if that file doesn't exist yet.
@@ -32,7 +32,7 @@ OUT = Path("data/last_ragas_eval.json")
 def run() -> None:
     if not ANSWERS.exists():
         raise FileNotFoundError(
-            f"{ANSWERS} not found. Run `PYTHONPATH=. python -m comparison.collect_payments_rag` first."
+            f"{ANSWERS} not found. Run `PYTHONPATH=. python -m comparison.collect.payments_rag` first."
         )
     records = read_jsonl(ANSWERS)
     print(f"\nRAGAS eval on payments-rag's own answers ({len(records)} questions)\n")

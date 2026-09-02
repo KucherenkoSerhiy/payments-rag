@@ -3,7 +3,7 @@
 
 Exists because RAGAS's faithfulness/context_precision/context_recall need
 retrieved passage text, and NotebookLM's UI only exposes cited filenames
-(see `collect_notebooklm.py`'s docstring) — those three scores read as noise
+(see `collect/notebooklm.py`'s docstring) — those three scores read as noise
 for that system. The judge only needs (question, ground_truth, answer), so
 it grades all three systems on the same basis: factual correctness, 0-100.
 

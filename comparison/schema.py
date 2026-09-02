@@ -15,7 +15,7 @@ from pathlib import Path
 
 @dataclass
 class SystemAnswer:
-    system: str          # "payments-rag" | "openai-file-search" | "notebooklm"
+    system: str          # e.g. "payments-rag", "openai-file-search", "haystack"
     question_id: str
     question: str
     answer: str

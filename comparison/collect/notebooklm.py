@@ -1,42 +1,16 @@
-"""Write NotebookLM's golden-set answers to data/comparison/notebooklm.jsonl.
+"""Replay NotebookLM's manually-gathered answers into the shared shape.
 
-Unlike the other two adapters, this isn't a live collector: NotebookLM has no
-scriptable API (see docs/vs-managed-rag.md and the `compare-notebooklm`
-Makefile target), so the 10 answers below were gathered by hand through the
-NotebookLM web UI (a Google account, a notebook created manually, the three
-corpus PDFs uploaded as native sources) on 2026-08-27. Question text and
-ground_truth are reused from data/comparison/payments_rag.jsonl rather than
-duplicated, since it's the same golden set.
+Not a live collector: NotebookLM has no scriptable path (docs/vs-managed-rag.md),
+so the answers below were captured by hand through its web UI on 2026-08-27.
+The FIDELITY_NOTE on every row records what that costs in comparability.
 
-Known fidelity gaps versus the other two systems, both logged so they aren't
-mistaken for real numbers later:
-
-  * `contexts` is set to the cited source filenames, not retrieved passage
-    text: NotebookLM's UI only exposes which document a citation came from,
-    not the passage itself. RAGAS's faithfulness/context_precision/
-    context_recall need real passage text to mean anything, so those three
-    scores are NOT comparable to payments-rag's or openai-file-search's for
-    this system; `answer_relevancy` (question vs. answer, no context needed)
-    still is.
-  * `latency_s` is a rough constant from the human operator's observed
-    10-20s-per-question range, not a per-question measurement.
-  * Manual setup (account, notebook, PDF upload) took about 11 minutes,
-    separate from and before the ~10-20s/question chat latency.
-
-Run:
-
-    PYTHONPATH=. python -m comparison.collect_notebooklm
+    PYTHONPATH=. python -m comparison.collect.notebooklm
 """
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from comparison.logging_setup import get_logger
-from comparison.schema import SystemAnswer, append_jsonl, read_jsonl
-
-GOLDEN_SOURCE = Path("data/comparison/payments_rag.jsonl")
-OUT = Path("data/comparison/notebooklm.jsonl")
+from comparison.collect.base import collect, load_golden
+from comparison.schema import SystemAnswer
 
 APPROX_LATENCY_S = 15.0  # midpoint of the observed 10-20s/question range
 
@@ -90,31 +64,24 @@ ANSWERS: dict[str, dict] = {
     },
 }
 
-log = get_logger("comparison.collect_notebooklm")
+def _replay(entry: dict) -> SystemAnswer:
+    data = ANSWERS[entry["id"]]
+    return SystemAnswer(
+        system="notebooklm",
+        question_id=entry["id"],
+        question=entry["question"],
+        answer=data["answer"],
+        contexts=data["citations"],
+        citations=data["citations"],
+        ground_truth=entry["expected_answer"],
+        latency_s=APPROX_LATENCY_S,
+        cost_usd=0.0,
+        fidelity_note=FIDELITY_NOTE,
+    )
 
 
 def run() -> None:
-    golden = {r.question_id: r for r in read_jsonl(GOLDEN_SOURCE)}
-    OUT.unlink(missing_ok=True)
-
-    for question_id, data in ANSWERS.items():
-        golden_row = golden[question_id]
-        record = SystemAnswer(
-            system="notebooklm",
-            question_id=question_id,
-            question=golden_row.question,
-            answer=data["answer"],
-            contexts=data["citations"],
-            citations=data["citations"],
-            ground_truth=golden_row.ground_truth,
-            latency_s=APPROX_LATENCY_S,
-            cost_usd=0.0,
-            fidelity_note=FIDELITY_NOTE,
-        )
-        append_jsonl(OUT, record)
-        log.info("notebooklm/%s: recorded (%d citation(s))", question_id, len(data["citations"]))
-
-    log.info("wrote %d rows to %s", len(ANSWERS), OUT)
+    collect("notebooklm", load_golden(), _replay)
 
 
 if __name__ == "__main__":

@@ -1,2 +1,2 @@
-"""One module per system under comparison. Each exposes a function that takes a
-golden-set question and returns a `comparison.schema.SystemAnswer`."""
+"""One module per system under comparison; every answer lands in the shared
+`comparison.schema.SystemAnswer` shape."""

@@ -1,7 +1,7 @@
 """Score every collected system's answers with the same RAGAS metrics.
 
-Reads whichever of the three `data/comparison/*.jsonl` files exist (a missing
-one is logged and skipped, not an error, since NotebookLM's leg may not be
+Reads whichever of the systems' `data/comparison/*.jsonl` files exist (a
+missing one is logged and skipped, not an error, since a leg may not be
 collected yet) and writes one combined scored file plus a printed summary.
 
 Resumable: a prior `ragas_scores.jsonl` is read first, and a row is reused only if

@@ -48,27 +48,27 @@ RAGAS_ISOLATED := uv run --isolated --with "ragas==0.4.3" --with "langchain-comm
                   --with langchain-openai --with python-dotenv
 
 compare-payments-rag:  ## comparison: collect payments-rag's own answers on the golden set
-	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect_payments_rag
+	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect.payments_rag
 
 compare-openai:  ## comparison: collect OpenAI file_search's answers (real cost, ~$0.35/run)
-	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect_openai
+	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect.openai_filesearch
 
-compare-notebooklm:  ## comparison: replay NotebookLM's manually-gathered answers (see comparison/collect_notebooklm.py docstring)
-	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect_notebooklm
+compare-notebooklm:  ## comparison: replay NotebookLM's manually-gathered answers (see comparison/collect/notebooklm.py docstring)
+	PYTHONIOENCODING=utf-8 PYTHONPATH=. $(PYTHON) -m comparison.collect.notebooklm
 
 compare-haystack:  ## comparison: collect answers from a Haystack-built RAG pipeline (isolated env, see docs/adr/0019)
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 uv run --isolated --with haystack-ai --with nltk --with python-dotenv --with pyyaml \
-		python -m comparison.collect_haystack
+		python -m comparison.collect.framework haystack
 
 compare-llamaindex:  ## comparison: collect answers from a LlamaIndex-built RAG pipeline (isolated env, see docs/adr/0019)
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 uv run --isolated --with llama-index --with llama-index-embeddings-openai \
 		--with llama-index-llms-openai --with pypdf --with python-dotenv --with pyyaml \
-		python -m comparison.collect_llamaindex
+		python -m comparison.collect.framework llamaindex
 
 compare-langchain:  ## comparison: collect answers from a LangChain/LangGraph-built RAG pipeline (isolated env, see docs/adr/0019)
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 uv run --isolated --with langgraph --with langchain-openai \
 		--with langchain-text-splitters --with pypdf --with tiktoken --with python-dotenv --with pyyaml \
-		python -m comparison.collect_langchain
+		python -m comparison.collect.framework langchain
 
 compare-score:  ## comparison: score every collected system with RAGAS (isolated env; resumes from cached rows, skips systems with no data yet)
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(RAGAS_ISOLATED) python -m comparison.score_comparison
