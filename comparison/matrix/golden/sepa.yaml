@@ -40,12 +40,12 @@
   expected_answer: "140 characters."
 
 - id: sct-recall-deadlines
-  question: "What are the deadlines for an Originator PSP to send a Recall?"
-  expected_answer: "Within 10 Banking Business Days after execution for duplicate sending or technical problems, and within 13 months for fraud."
+  question: "Within what deadlines must an SCT Recall be sent for duplicate/technical errors versus fraud?"
+  expected_answer: "Within 10 Banking Business Days for duplicate sending or technical problems, and within 13 months for fraud."
 
 - id: sct-value-limits
-  question: "Is there a maximum amount for an SCT or SCT Inst transaction?"
-  expected_answer: "There is no maximum amount at scheme level; the technical message format caps a single transaction at 999,999,999.99 euro."
+  question: "Does the SCT scheme itself set a maximum transaction amount?"
+  expected_answer: "No. The scheme sets no value limit; limits may exist between participants or CSMs, not by the scheme."
 
 # --- 10 new (mined 2026-09-01 from the same rulebook PDFs) ---
 

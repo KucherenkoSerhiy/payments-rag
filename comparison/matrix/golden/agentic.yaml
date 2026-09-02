@@ -94,7 +94,7 @@
   # source: openai-practical-guide-agents.txt, "Decentralized pattern"
 
 - id: ag-openai-guardrails
-  question: "Name some guardrail types from OpenAI's guide for agents."
+  question: "What guardrail types does OpenAI's guide list for agents?"
   expected_answer: "Relevance classifier, safety classifier (jailbreak/prompt-injection detection), PII filter, moderation, tool safeguards (risk-rating tools), rules-based protections (blocklists, input limits, regex), and output validation."
   # source: openai-practical-guide-agents.txt, "Types of guardrails"
 

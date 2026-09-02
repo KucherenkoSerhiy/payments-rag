@@ -79,8 +79,8 @@ class _TextExtractor(HTMLParser):
 
 
 def _looks_like_boilerplate(line: str) -> bool:
-    l = line.strip().lower()
-    if len(l) <= 2:
+    low = line.strip().lower()
+    if len(low) <= 2:
         return True
     junk_exact = {
         "skip to main content", "home", "search", "menu", "newsletters", "subscribe",
@@ -89,10 +89,10 @@ def _looks_like_boilerplate(line: str) -> bool:
         "sections", "on this page", "feedback", "print", "share", "download",
         "related", "more", "see also", "back to top",
     }
-    if l in junk_exact:
+    if low in junk_exact:
         return True
     # Nav crumbs / social links / bare link lists.
-    if re.fullmatch(r"(twitter|x|facebook|linkedin|instagram|youtube|tiktok|snapchat|rss|©.*|all rights reserved.*)", l):
+    if re.fullmatch(r"(twitter|x|facebook|linkedin|instagram|youtube|tiktok|snapchat|rss|©.*|all rights reserved.*)", low):
         return True
     return False
 
@@ -145,6 +145,16 @@ def convert_pdf(path: Path) -> str:
 
 
 def main() -> None:
+    # SEPA is the fourth topic: its sources are the production rulebook PDFs
+    # already in corpus/raw/ (gitignored, fetched per README). Mirror them into
+    # the uniform topic layout so the matrix harness reads all topics alike.
+    sepa_raw = TOPICS / "sepa" / "raw"
+    sepa_raw.mkdir(parents=True, exist_ok=True)
+    for pdf in Path("corpus/raw").glob("*.pdf"):
+        dest = sepa_raw / pdf.name
+        if not dest.exists():
+            dest.write_bytes(pdf.read_bytes())
+
     for topic_dir in sorted(TOPICS.iterdir()):
         if not topic_dir.is_dir():
             continue
