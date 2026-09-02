@@ -58,6 +58,15 @@ def _content_hash(pipeline_key: str, topic: str, corpus_fp: str, question: str) 
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
+def _write_rows(rows: list[dict]) -> None:
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    tmp = OUT.with_suffix(".jsonl.tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(OUT)
+
+
 def _load_existing() -> dict[tuple[str, str, str], dict]:
     if not OUT.exists():
         return {}
@@ -127,10 +136,12 @@ def run() -> None:
                 log.info("%s/%s/%s: %.2fs $%.4f", pipe.key, topic, g["id"],
                          ans.latency_s, ans.cost_usd)
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUT.open("w", encoding="utf-8") as f:
-        for row in all_rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            # Flush after every (pipeline, topic) cell: a crash mid-run must
+            # never cost the answers already paid for - resumability is only
+            # real if partial progress reaches disk.
+            _write_rows(all_rows)
+
+    _write_rows(all_rows)
 
     print(f"\n{len(all_rows)} answer rows written to {OUT}")
     if skipped_pipelines:

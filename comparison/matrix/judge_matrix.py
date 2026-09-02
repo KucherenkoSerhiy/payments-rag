@@ -75,6 +75,15 @@ def _hash(judge_key: str, answer: str) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 
+def _write_rows(rows: list[dict]) -> None:
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    tmp = OUT.with_suffix(".jsonl.tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    tmp.replace(OUT)
+
+
 def _load_existing() -> dict[tuple[str, str, str, str], dict]:
     if not OUT.exists():
         return {}
@@ -136,12 +145,10 @@ def run() -> None:
             out_rows.append(row)
             log.info("%s/%s/%s judge=%s: %d", a["pipeline"], a["topic"],
                      a["question_id"], judge_key, score)
+            if len(out_rows) % 50 == 0:
+                _write_rows(out_rows)  # crash-safety flush
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUT.open("w", encoding="utf-8") as f:
-        for row in out_rows:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
-
+    _write_rows(out_rows)
     print(f"\n{len(out_rows)} judge rows written to {OUT}")
     if skipped_judges:
         print(f"SKIPPED judges (missing API keys): {sorted(skipped_judges)}")
