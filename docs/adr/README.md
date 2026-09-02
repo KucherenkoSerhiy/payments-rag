@@ -29,3 +29,6 @@ relitigate a settled call.
 | [0016](0016-reranker-llm-cross-encoder-eval-only.md) | Reranking: LLM-as-cross-encoder, eval-only (Track B) | Accepted (recall 0.60→0.70; not in product path) |
 | [0017](0017-frontend-angular-fastapi.md) | Frontend: Angular SPA + FastAPI backend | Accepted (supersedes 0010) |
 | [0018](0018-cloud-deploy-fly-neon.md) | Public cloud deploy: Fly.io + Neon, no auth | Accepted (supersedes 0013) |
+| [0019](0019-library-comparator-haystack-eval-only.md) | Framework comparators (Haystack/LlamaIndex/LangChain), eval-only | Accepted |
+| [0020](0020-screaming-architecture-restructure.md) | Screaming-architecture restructure | Accepted |
+| [0021](0021-model-matrix-eval-only.md) | Model-matrix experiment (multi-topic, multi-vendor), eval-only | Accepted |
