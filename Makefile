@@ -76,4 +76,7 @@ compare-score:  ## comparison: score every collected system with RAGAS (isolated
 compare-judge:  ## comparison: grade every collected system with the cross-model judge (evals/judge.py), no isolation needed
 	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.judge_comparison
 
+compare-report:  ## comparison: regenerate docs/comparison-report.md from both scorers' outputs (free, no API)
+	PYTHONPATH=. PYTHONIOENCODING=utf-8 $(PYTHON) -m comparison.report
+
 compare-all: compare-payments-rag compare-openai compare-notebooklm compare-haystack compare-llamaindex compare-langchain compare-score compare-judge  ## comparison: run every system + both scorers
